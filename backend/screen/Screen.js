@@ -5,14 +5,15 @@ export class Screen {
     width;
     height;
 
-    socket;
+    socketFrontend;
 
     data
 
-    constructor(width, height, socket) {
+    constructor(width, height, socketFrontend, socketFadeCandy) {
         this.width = width
         this.height = height
-        this.socket = socket
+        this.socketFrontend = socketFrontend
+        this.socketFadeCandy = socketFadeCandy
 
         this.data = nj.zeros([width, height, 3])
     }
@@ -23,6 +24,18 @@ export class Screen {
         this.data.set(x, y, 2, pixelValue[2])
     }
 
+    setRow(y, value){
+        for (let i = 0; i < this.height; i++){
+            this.setPixel(i,y, value)
+        }
+    }
+
+    setCol(x, value){
+        for (let i = 0; i < this.height; i++){
+            this.setPixel(x,i, value)
+        }
+    }
+
     pickRandomPixel(){
         return {
             x: getRandomInt(this.width),
@@ -31,8 +44,17 @@ export class Screen {
     }
 
     refresh(){
-        if(this.socket) {
-            this.socket.emit("screen-update", this.toFadeCandy())
+        const pixelArray = this.toFadeCandy()
+        if(this.socketFrontend) {
+            this.socketFrontend.emit("screen-update", this.toFadeCandy())
+        }
+        if(this.socketFadeCandy) {
+            if(this.socketFadeCandy.readyState === 1){
+                const packet = new Uint8Array(pixelArray)
+                this.socketFadeCandy.send(packet.buffer)
+            } else {
+                console.log("Socket is not ready, "+this.socketFadeCandy.readyState)
+            }
         }
     }
 
@@ -41,7 +63,7 @@ export class Screen {
     }
 
     toFadeCandy(){
-        return nj.concatenate([0,0,0], this.flat()).tolist()
+        return nj.concatenate([0,0,0,0], this.flat()).tolist()
     }
 
 

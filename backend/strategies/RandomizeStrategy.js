@@ -1,5 +1,5 @@
-import Strategy from "./AbstractStrategy"
 import {getRandomInt} from "../Utils"
+import AbstractIntervalStrategy from "./AbstractIntervalStrategy";
 
 export const BlueRandomizeStrategy = (screen, ...more) => {
     return new RandomizeStrategy(screen,15,()=> getRandomInt(255), 255, ...more)
@@ -13,39 +13,22 @@ export const GreenRandomizeStrategy = (screen, ...more) => {
     return new RandomizeStrategy(screen,()=> getRandomInt(100), 255, ()=> getRandomInt(200) , ...more)
 }
 
-export default class RandomizeStrategy extends Strategy{
+export class RandomizeStrategy extends AbstractIntervalStrategy{
     rStrategy
     gStrategy
     bStrategy
 
-    period
     turnedOffPercentage
     replacedPerStep
 
-    interval = null
-
-
     constructor(screen, rStrategy, gStrategy, bStrategy, period, turnedOffPercentage = 0.8, replacedPerStep = 1) {
-        super(screen)
+        super(screen, period)
         this.rStrategy = rStrategy
         this.gStrategy = gStrategy
         this.bStrategy = bStrategy
-        this.period = period
         this.turnedOffPercentage = turnedOffPercentage
         this.replacedPerStep = replacedPerStep
     }
-    start() {
-        this.interval = setInterval(this.step.bind(this), this.period)
-    }
-
-    stop() {
-        if (this.interval){
-            clearInterval(this.interval)
-            this.interval = null
-        }
-    }
-
-
 
     step() {
         for (let i = 0; i < this.replacedPerStep; i++) {

@@ -14,15 +14,23 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max))
 }
 
+/**
+ * Excluding the 4th first cases of the array
+ * @param rawArray
+ * @param xMax
+ * @param yMax
+ * @returns {any[]}
+ */
 function convertRawFadeCandyDataToScreen(rawArray, xMax, yMax){
     var a = Array(xMax * yMax)
     for (let i = 1; i <= xMax * yMax ; i++) {
         a[i-1] = {
             index: i - 1,
-            color: [rawArray[i * 3], rawArray[i * 3 + 1], rawArray[i * 3 + 2]]
+            color: [rawArray[i * 3 + 1], rawArray[i * 3 + 1 + 1], rawArray[i * 3 + 2 + 1 ]]
         }
     }
-    return a
+
+    return a.reverse()
 }
 
 class ScreenPage extends Component {

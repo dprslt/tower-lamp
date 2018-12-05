@@ -1,4 +1,4 @@
-import 'babel-polyfill'
+import '@babel/polyfill'
 import cors from 'cors'
 import http from 'http'
 import ioServer from 'socket.io'
@@ -10,7 +10,9 @@ import {
     RedRandomizeStrategy,
     GreenRandomizeStrategy
 } from "./strategies/RandomizeStrategy"
-import {getRandomInt} from "./Utils"
+import WebSocket from "ws"
+import {getRandomInt} from "./Utils";
+import {CircleStrategy} from "./strategies/CircleStrategy";
 
 const app = express()
 app.use(cors())
@@ -23,10 +25,15 @@ const io = ioServer(server,{
 io.on('connection', () => { console.log("Socket Connected")})
 server.listen(3107)
 
-var screen = new Screen(21,8, io)
-//var animation = new RandomizeStrategy(screen, 255, ()=> getRandomInt(255), 15, 50)
-//var animation = BlueRandomizeStrategy(screen, 200, 0.8, 5)
-var animation = GreenRandomizeStrategy(screen, 200, 0.8, 5)
-animation.start()
+const fadeCandySocket = new WebSocket("ws://192.168.1.12:7890")
 
+var screen = new Screen(8,21, io, fadeCandySocket)
+var animation = null
+
+//animation = new RandomizeStrategy(screen, ()=> getRandomInt(255),()=> getRandomInt(255),()=> getRandomInt(255), 500, 0.8, 20)
+animation = new CircleStrategy(screen, 255,16,45,500 )
+//animation = RedRandomizeStrategy(screen, 500, 0.8, 20)
+//animation = BlueRandomizeStrategy(screen, 200, 0.8, 20)
+//animation = GreenRandomizeStrategy(screen, 200, 0.8, 10)
+animation.start()
 
