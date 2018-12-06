@@ -37,7 +37,7 @@ class ScreenPage extends Component {
     constructor (props, context) {
         super(props, context)
         this.state = {
-          cells : this.generateRandom(168)
+          cells : this.generateBlack(168)
         }
         this.randomize = this.randomize.bind(this)
         this.startRandomize = this.startRandomize.bind(this)
@@ -58,6 +58,17 @@ class ScreenPage extends Component {
         })
         this.socket.on('screen-update', function(data) {
             this.setState({cells: convertRawFadeCandyDataToScreen(data, this.x, this.y)})
+        }.bind(this))
+
+        this.socket.on('connect', function () {
+            console.log("Sending event")
+            this.socket.emit('get-strategies')
+        }.bind(this))
+
+        this.socket.on('strategies', function (data) {
+            let newState = Object.assign({}, this.state)
+            newState.strategies = data
+            this.setState(newState)
         }.bind(this))
     }
 
@@ -103,13 +114,32 @@ class ScreenPage extends Component {
       return a
     }
 
+    generateBlack(size) {
+        var a = []
+        for (var i = 0; i < size; i++) {
+            a.push(this.generateBlackPixel(i))
+        }
+        return a
+    }
+
     generateRandomPixel(index){
          return { index: index, color: [getRandomInt(255), getRandomInt(255), getRandomInt(255)] }
+    }
+
+    generateBlackPixel(index){
+        return { index: index, color: [0, 0, 0] }
     }
 
     render() {
         return <div className={'screen-container'}>
             <Screen data={this.state.cells} x={8} y={21} pixelSize={25} pixelGap={3}/>
+
+
+        </div>
+    }
+}
+
+/*
             <div className={'buttons-line'}>
                 <button className={"btn"} onClick={this.randomize}>Randomize</button>
                 <button className={"btn"} onClick={this.replaceOne}>Replace One</button>
@@ -117,9 +147,7 @@ class ScreenPage extends Component {
                 <button className={"btn btn-danger"} onClick={this.stopRandomize}>Stop</button>
 
             </div>
-        </div>
-    }
-}
+            */
 
 function mapDispatchToProps(dispatch) {
     return {

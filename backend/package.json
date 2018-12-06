@@ -2,7 +2,7 @@
   "name": "server",
   "version": "1.0.0",
   "scripts": {
-    "start": "node -r @babel/register index.js"
+    "start": "node -r @babel/register src/index.js"
   },
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.2.1",
