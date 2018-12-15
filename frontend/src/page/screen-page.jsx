@@ -9,6 +9,7 @@ import Screen from '../components/screen/screen'
 import './screen-page.scss'
 
 import io from 'socket.io-client'
+import Strategies from "../components/strategies/strategies";
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max))
@@ -43,6 +44,8 @@ class ScreenPage extends Component {
         this.startRandomize = this.startRandomize.bind(this)
         this.stopRandomize = this.stopRandomize.bind(this)
         this.replaceOne = this.replaceOne.bind(this)
+
+        this.playHandler = this.playHandler.bind(this)
 
         this.x = 8
         this.y = 21
@@ -130,10 +133,21 @@ class ScreenPage extends Component {
         return { index: index, color: [0, 0, 0] }
     }
 
-    render() {
-        return <div className={'screen-container'}>
-            <Screen data={this.state.cells} x={8} y={21} pixelSize={25} pixelGap={3}/>
 
+    playHandler(strategy){
+        console.log(strategy)
+
+        this.socket.emit("select-strategy", (strategy))
+    }
+
+    render() {
+        return <div className={'root-container'}>
+            <div className={"strategies-container"}>
+                <Strategies strategies={this.state.strategies} playHandler={this.playHandler}/>
+            </div>
+            <div className={'screen-container'}>
+                <Screen data={this.state.cells} x={8} y={21} pixelSize={25} pixelGap={3}/>
+            </div>
 
         </div>
     }

@@ -32,21 +32,29 @@ const screen = new Screen(8,21, io, fadeCandySocket)
 
 const factory = new StrategyFactory(screen)
 
+var animation = null
+
 io.on('connection', (socket) => {
     socket.on('get-strategies', function (data) {
         socket.emit('strategies', factory.getTemplates())
     })
 
     socket.on('select-strategy', function (data) {
-
+        console.log("strategy selected !")
+        screen.erase()
+        if(animation){
+            animation.stop()
+        }
+        animation = factory.getStrategyFromTemplate(data.name, 200,45,45,200)
+        animation.start()
     })
 })
 
 
-var animation = null
+
 
 //animation = new RandomizeStrategy(screen, ()=> getRandomInt(255),()=> getRandomInt(255),()=> getRandomInt(255), 500, 0.8, 20)
-animation = new CircleStrategy(screen, 255,16,45,800 )
+animation = new CircleStrategy(screen, 255,75,10,70 )
 //animation = RedRandomizeStrategy(screen, 500, 0.8, 20)
 //animation = BlueRandomizeStrategy(screen, 200, 0.8, 20)
 //animation = GreenRandomizeStrategy(screen, 200, 0.8, 10)

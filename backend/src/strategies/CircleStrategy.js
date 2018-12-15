@@ -26,16 +26,33 @@ export class CircleStrategy extends AbstractIntervalStrategy{
     step(){
         let computedColor = this._playColorStrategy()
         this.screen.setRow(this.circleLevel, [computedColor.r, computedColor.g, computedColor.b])
-        this.screen.setRow(mod(this.circleLevel - 1, this.screen.height), [0,0,0])
+        const levelsMinus = [0.75, 0.5, 0.15, 0]
+        for (let i = 0; i< levelsMinus.length; ++i){
+            this.screen.setRow(this.safePos(this.circleLevel-(i+1)), [computedColor.r * levelsMinus[i], computedColor.g * levelsMinus[i], computedColor.b * levelsMinus[i]])
+        }
 
+        const levelsPlus = [0.2, 0.1]
+        for (let i = 0; i< levelsPlus.length; ++i){
+            this.screen.setRow(this.safePos(this.circleLevel+(i+1)), [computedColor.r * levelsPlus[i], computedColor.g * levelsPlus[i], computedColor.b * levelsMinus[i]])
+        }
+
+        this.evolvePos()
+
+        this.screen.refresh()
+
+    }
+
+    evolvePos(){
         if(!this.reverseDirection){
             this.circleLevel++
         } else {
             this.circleLevel--
         }
         this.circleLevel = mod(this.circleLevel, this.screen.height)
-        this.screen.refresh()
+    }
 
+    safePos(pos){
+        return mod(pos, this.screen.height)
     }
 
     _playColorStrategy() {

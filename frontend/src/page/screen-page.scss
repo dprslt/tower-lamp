@@ -1,7 +1,27 @@
-.screen-container{
+.root-container{
   margin: 0 auto;
-  padding-top: 50px;
   text-align: center;
+  display: flex;
+}
+
+.strategies-container{
+  flex: 50%;
+}
+
+.strategies{
+  width: 100%;
+}
+
+.strategy{
+  display: inline-block;
+  min-width: 150px;
+  max-width: 350px;
+  height: 150px;
+  margin: 20px;
+}
+
+.screen-container{
+  margin: 25px
 }
 
 .buttons-line{

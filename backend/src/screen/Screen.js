@@ -15,7 +15,11 @@ export class Screen {
         this.socketFrontend = socketFrontend
         this.socketFadeCandy = socketFadeCandy
 
-        this.data = nj.zeros([width, height, 3])
+        this.erase()
+    }
+
+    erase(){
+        this.data = nj.zeros([this.width, this.height, 3])
     }
 
     setPixel(x,y, pixelValue){
