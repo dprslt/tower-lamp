@@ -57,7 +57,7 @@ export class Screen {
                 const packet = new Uint8Array(pixelArray)
                 this.socketFadeCandy.send(packet.buffer)
             } else {
-                console.log("Socket is not ready, "+this.socketFadeCandy.readyState)
+                //console.log("Socket is not ready, "+this.socketFadeCandy.readyState)
             }
         }
     }

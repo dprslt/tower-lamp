@@ -5,63 +5,33 @@ import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
 
 // APP
-import Screen from '../components/screen/screen'
-import './screen-page.scss'
-
-import io from 'socket.io-client'
 import Strategies from "../components/strategies/strategies";
+import ScreenFetcher from '../components/screen/screen-fetcher'
+import io from 'socket.io-client'
+import './screen-page.scss'
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max))
 }
 
-/**
- * Excluding the 4th first cases of the array
- * @param rawArray
- * @param xMax
- * @param yMax
- * @returns {any[]}
- */
-function convertRawFadeCandyDataToScreen(rawArray, xMax, yMax){
-    var a = Array(xMax * yMax)
-    for (let i = 1; i <= xMax * yMax ; i++) {
-        a[i-1] = {
-            index: i - 1,
-            color: [rawArray[i * 3 + 1], rawArray[i * 3 + 1 + 1], rawArray[i * 3 + 2 + 1 ]]
-        }
-    }
-
-    return a.reverse()
-}
-
-class ScreenPage extends Component {
+export default class ScreenPage extends Component {
     constructor (props, context) {
         super(props, context)
-        this.state = {
-          cells : this.generateBlack(168)
-        }
-        this.randomize = this.randomize.bind(this)
-        this.startRandomize = this.startRandomize.bind(this)
-        this.stopRandomize = this.stopRandomize.bind(this)
-        this.replaceOne = this.replaceOne.bind(this)
 
         this.playHandler = this.playHandler.bind(this)
 
-        this.x = 8
-        this.y = 21
+        this.state = {
+            strategies: []
+        }
 
         this.socket = null
     }
 
     componentDidMount(){
-        //this.startRandomize()
         this.socket = io("localhost:3107",{
             "reconnectionAttempts": "Infinity",
             "transports": ['websocket']
         })
-        this.socket.on('screen-update', function(data) {
-            this.setState({cells: convertRawFadeCandyDataToScreen(data, this.x, this.y)})
-        }.bind(this))
 
         this.socket.on('connect', function () {
             console.log("Sending event")
@@ -75,97 +45,29 @@ class ScreenPage extends Component {
         }.bind(this))
     }
 
-    componentWillUnmount(){
-        this.stopRandomize()
-    }
-
-    startRandomize(){
-        if(this.interval) {
-            this.stopRandomize()
-        }
-        this.interval = setInterval(function () {
-            this.randomize()
-        }.bind(this), 16)
-    }
-
-    stopRandomize(){
-        if(this.interval) {
-            clearInterval(this.interval)
-            this.interval = null
-        }
-    }
-
-    static propTypes = {
-    };
-
-    randomize(){
-        this.setState({cells : this.generateRandom(this.x * this.y)})
-    }
-
-    replaceOne(){
-        let newState = Object.assign({}, this.state)
-        var i = getRandomInt(newState.cells.length)
-        newState.cells[i] = this.generateRandomPixel(i)
-        this.setState(newState)
-    }
-
-    generateRandom(size) {
-      var a = []
-      for (var i = 0; i < size; i++) {
-        a.push(this.generateRandomPixel(i))
-      }
-      return a
-    }
-
-    generateBlack(size) {
-        var a = []
-        for (var i = 0; i < size; i++) {
-            a.push(this.generateBlackPixel(i))
-        }
-        return a
-    }
-
-    generateRandomPixel(index){
-         return { index: index, color: [getRandomInt(255), getRandomInt(255), getRandomInt(255)] }
-    }
-
-    generateBlackPixel(index){
-        return { index: index, color: [0, 0, 0] }
-    }
-
-
     playHandler(strategy){
         console.log(strategy)
-
         this.socket.emit("select-strategy", (strategy))
     }
 
     render() {
-        return <div className={'root-container'}>
-            <div className={"strategies-container"}>
-                <Strategies strategies={this.state.strategies} playHandler={this.playHandler}/>
+        return (
+        <div >
+            <div className={"container-fluid"}>
+                <div className={"row"}>
+                    <div className={'col heading text-center mt-5 mb-5'}>
+                        <h1 className={"display-4"}>NOTRE LAMPE</h1>
+                    </div>
+                </div>
             </div>
-            <div className={'screen-container'}>
-                <Screen data={this.state.cells} x={8} y={21} pixelSize={25} pixelGap={3}/>
+            <div className={'root-container'}>
+                <div className={"strategies-container"}>
+                    <Strategies strategies={this.state.strategies} playHandler={this.playHandler}/>
+                </div>
+                <div className={'screen-container'}>
+                    <ScreenFetcher socket={this.socket}/>
+                </div>
             </div>
-
-        </div>
+        </div>)
     }
 }
-
-/*
-            <div className={'buttons-line'}>
-                <button className={"btn"} onClick={this.randomize}>Randomize</button>
-                <button className={"btn"} onClick={this.replaceOne}>Replace One</button>
-                <button className={"btn btn-success"} onClick={this.startRandomize}>Start</button>
-                <button className={"btn btn-danger"} onClick={this.stopRandomize}>Stop</button>
-
-            </div>
-            */
-
-function mapDispatchToProps(dispatch) {
-    return {
-    }
-}
-
-export default connect(null, mapDispatchToProps)(ScreenPage)

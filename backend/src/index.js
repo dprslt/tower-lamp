@@ -23,10 +23,13 @@ const io = ioServer(server,{
 })
 
 
-io.on('connection', () => { console.log("Socket Connected")})
+io.on('connection', () => { console.log("Web Client Socket Connected")})
 server.listen(3107)
 
-const fadeCandySocket = new WebSocket("ws://localhost:7890")
+let fadeCandySocket = new WebSocket("ws://localhost:7890")
+fadeCandySocket.onerror=function(event){
+    console.error("Unable to connect with the Fadecandy")
+}
 
 const screen = new Screen(8,21, io, fadeCandySocket)
 
@@ -40,13 +43,24 @@ io.on('connection', (socket) => {
     })
 
     socket.on('select-strategy', function (data) {
-        console.log("strategy selected !")
-        screen.erase()
-        if(animation){
-            animation.stop()
+        try{
+            screen.erase()
+            if(animation){
+                animation.stop()
+            }
+
+            let parameters = []
+            if(data.params && Array.isArray(data.params)){
+                parameters = factory.buildParametersArray(data.params)
+            }
+            console.log("Launching new strategy : "+data.name+", parameters : "+(parameters))
+            animation = factory.getStrategyFromTemplate(data.name, ...parameters)
+            animation.start()
+        } catch (e) {
+            console.error("Error while applying the new strategy.")
+            console.error(e)
         }
-        animation = factory.getStrategyFromTemplate(data.name, 200,45,45,200)
-        animation.start()
+
     })
 })
 

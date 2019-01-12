@@ -27,6 +27,7 @@
     "leaflet.markercluster": "^1.4.1",
     "moment": "^2.22.2",
     "prop-types": "latest",
+    "rc-slider": "^8.6.4",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-hot-loader": "^4.3.8",

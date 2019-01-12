@@ -39,7 +39,6 @@ export class CircleStrategy extends AbstractIntervalStrategy{
         this.evolvePos()
 
         this.screen.refresh()
-
     }
 
     evolvePos(){
@@ -70,9 +69,5 @@ export class CircleStrategy extends AbstractIntervalStrategy{
             return rStrategy
         }
     }
-
-
-
-
 
 }
