@@ -29,7 +29,7 @@ export class Screen {
     }
 
     setRow(y, value){
-        for (let i = 0; i < this.height; i++){
+        for (let i = 0; i < this.width; i++){
             this.setPixel(i,y, value)
         }
     }
@@ -68,6 +68,22 @@ export class Screen {
 
     toFadeCandy(){
         return nj.concatenate([0,0,0,0], this.flat()).tolist()
+    }
+
+
+    injectFlatData(fullFrame) {
+        this.data = nj.array(fullFrame).reshape([this.width, this.height, 3])
+    }
+
+    displayRowFrame(flatennedFrame){
+        if(this.socketFadeCandy) {
+            if(this.socketFadeCandy.readyState === 1){
+                const packet = new Uint8Array(flatennedFrame)
+                this.socketFadeCandy.send(packet.buffer)
+            } else {
+                //console.log("Socket is not ready, "+this.socketFadeCandy.readyState)
+            }
+        }
     }
 
 

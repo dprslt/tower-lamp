@@ -22,7 +22,7 @@ function convertRawFadeCandyDataToScreen(rawArray, xMax, yMax){
     return a.reverse()
 }
 
-export default class ScreenFetcher extends Component{
+export default class LocalScreenFetcher extends Component{
     constructor (props) {
         super(props)
 
@@ -49,25 +49,14 @@ export default class ScreenFetcher extends Component{
         return { index: index, color: [0, 0, 0] }
     }
 
-    updateScreen(data){
-        this.setState({cells: convertRawFadeCandyDataToScreen(data, this.x, this.y)})
-    }
-
-    componentDidMount(){
-        if(this.props.socket){
-            this.props.socket.on('screen-update', this.updateScreen.bind(this))
+       render(){
+        let finalData = this.state.cells
+        if(this.props.data){
+            finalData = convertRawFadeCandyDataToScreen(this.props.data, this.x, this.y)
         }
-    }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if(!prevProps.socket && this.props.socket){
-            this.props.socket.on('screen-update', this.updateScreen.bind(this))
-        }
-    }
-
-    render(){
         return (
-            <Screen data={this.state.cells} x={this.x} y={this.y} pixelSize={25} pixelGap={3}/>
+            <Screen data={finalData} x={this.x} y={this.y} pixelSize={25} pixelGap={3}/>
         )
     }
 

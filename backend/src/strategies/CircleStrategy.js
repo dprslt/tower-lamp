@@ -24,6 +24,7 @@ export class CircleStrategy extends AbstractIntervalStrategy{
     }
 
     step(){
+
         let computedColor = this._playColorStrategy()
         this.screen.setRow(this.circleLevel, [computedColor.r, computedColor.g, computedColor.b])
         const levelsMinus = [0.75, 0.5, 0.15, 0]

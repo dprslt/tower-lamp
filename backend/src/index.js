@@ -14,6 +14,7 @@ import WebSocket from "ws"
 import {getRandomInt} from "./Utils";
 import {CircleStrategy} from "./strategies/CircleStrategy";
 import StrategyFactory from "./StrategyFactory";
+import {ImageStrategy} from "./strategies/ImageStrategy";
 
 const app = express()
 app.use(cors())
@@ -26,7 +27,7 @@ const io = ioServer(server,{
 io.on('connection', () => { console.log("Web Client Socket Connected")})
 server.listen(3107)
 
-let fadeCandySocket = new WebSocket("ws://localhost:7890")
+let fadeCandySocket = new WebSocket("ws://192.168.1.34:7890")
 fadeCandySocket.onerror=function(event){
     console.error("Unable to connect with the Fadecandy")
 }
@@ -60,7 +61,31 @@ io.on('connection', (socket) => {
             console.error("Error while applying the new strategy.")
             console.error(e)
         }
+    })
 
+    socket.on('image-strategy', function (data)  {
+        try{
+            screen.erase()
+            if(animation){
+                animation.stop()
+            }
+
+            console.log("Launching new Image strategy : "+data.name+", parameters : "+(data.params))
+            animation = new ImageStrategy(screen, data.image, data.params)
+            animation.start()
+        } catch (e) {
+            console.error("Error while applying the new strategy.")
+            console.error(e)
+        }
+    })
+
+    socket.on('frame', function (data) {
+        screen.erase()
+        if(animation){
+            animation.stop()
+        }
+
+        screen.displayRowFrame(data)
     })
 })
 
