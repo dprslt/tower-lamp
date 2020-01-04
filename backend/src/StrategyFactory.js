@@ -29,9 +29,9 @@ const templates = [{
         name: "Danse Bleue",
         constr: BlueRandomizeStrategy,
         params: [
-            {name: "period", type: "number", defaultValue: 50},
+            {name: "period", type: "number", defaultValue: 1500},
             {name: "percentage", type: "number", defaultValue: 0.8},
-            {name: "replaced", type: "number", defaultValue: 5},
+            {name: "replaced", type: "number", defaultValue: 10},
         ]
     }, {
         name: "Danse Verte",

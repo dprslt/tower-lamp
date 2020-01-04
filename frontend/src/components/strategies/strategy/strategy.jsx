@@ -19,12 +19,15 @@ export default class Strategy extends React.Component {
                     </div>
                 </div>)
         },
-        number: function (p) {
+        number: (p) => {
             return (
                 <div key={p.name} className={'animation-parameter'}>
                     <div className={'parameter-title'}>{p.name}<span className={'separator'}> : </span></div>
                     <div className={'parameter-input'}>
-                        <input className={"form-control"} defaultValue={p.defaultValue}/>
+                        <input className={"form-control"} defaultValue={p.defaultValue} onChange={(e) => {
+                            const val = e.target.value
+                            this.setState((state) => { return {params : {...state.params, [p.name]: val}}})
+                        }}/>
                     </div>
                 </div>)
             }
@@ -38,7 +41,8 @@ export default class Strategy extends React.Component {
         this.toggleEdit = this.toggleEdit.bind(this)
 
         this.state = {
-            expansed: false
+            expansed: false,
+            params: {}
         }
     }
 
@@ -47,6 +51,12 @@ export default class Strategy extends React.Component {
     }
 
     emitClick(){
+        const newParams = [...this.props.strategy.params]
+        for (const np in this.state.params){
+            const obj = newParams.find(e => e.name === np)
+            obj.value = this.state.params[np]
+        }
+        const newStrat = {...this.props.strategy, params: newParams}
         this.props.playHandler(this.props.strategy)
     }
 

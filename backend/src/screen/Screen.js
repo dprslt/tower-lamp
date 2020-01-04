@@ -50,7 +50,7 @@ export class Screen {
     refresh(){
         const pixelArray = this.toFadeCandy()
         if(this.socketFrontend) {
-            this.socketFrontend.emit("screen-update", this.toFadeCandy())
+            //this.socketFrontend.emit("screen-update", this.toFadeCandy())
         }
         if(this.socketFadeCandy) {
             if(this.socketFadeCandy.readyState === 1){

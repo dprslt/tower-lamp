@@ -25,9 +25,10 @@ const io = ioServer(server,{
 
 
 io.on('connection', () => { console.log("Web Client Socket Connected")})
-server.listen(3107)
+server.listen(30008)
 
-let fadeCandySocket = new WebSocket("ws://192.168.1.34:7890")
+//Todo rendre ça résilient => reconnexion
+let fadeCandySocket = new WebSocket("ws://192.168.1.71:7890")
 fadeCandySocket.onerror=function(event){
     console.error("Unable to connect with the Fadecandy")
 }
@@ -87,13 +88,24 @@ io.on('connection', (socket) => {
 
         screen.displayRowFrame(data)
     })
+
+    socket.on('matrix-frame', function (data) {
+        screen.erase()
+        if(animation){
+            animation.stop()
+        }
+
+
+        screen.injectFlatData(data)
+        screen.refresh()
+    })
 })
 
 
 
 
 //animation = new RandomizeStrategy(screen, ()=> getRandomInt(255),()=> getRandomInt(255),()=> getRandomInt(255), 500, 0.8, 20)
-animation = new CircleStrategy(screen, 255,75,10,70 )
+animation = new CircleStrategy(screen, 255,75,10, 40 )
 //animation = RedRandomizeStrategy(screen, 500, 0.8, 20)
 //animation = BlueRandomizeStrategy(screen, 200, 0.8, 20)
 //animation = GreenRandomizeStrategy(screen, 200, 0.8, 10)

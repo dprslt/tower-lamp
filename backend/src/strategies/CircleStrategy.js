@@ -21,6 +21,8 @@ export class CircleStrategy extends AbstractIntervalStrategy{
         this.reverseDirection = reverseDirection;
 
         this.circleLevel = 0
+
+        this.counter = 0;
     }
 
     step(){
