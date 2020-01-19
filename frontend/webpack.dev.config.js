@@ -77,6 +77,7 @@ module.exports = {
     new webpack.NoEmitOnErrorsPlugin(),
     new webpack.DefinePlugin({
       BACKEND_WS_URL: JSON.stringify("192.168.1.2:30008"),
+      BASENAME_URL: '/'
     }),
     new HtmlWebpackPlugin({
         filename: path.resolve(__dirname, 'dist/index.html'),
