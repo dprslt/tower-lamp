@@ -5,6 +5,7 @@ import {Route, Switch} from 'react-router-dom'
 import {connect} from 'react-redux'
 import PropTypes from "prop-types"
 import ScreenPage from "../page/screen-page"
+import NewScreenPage from "../page/new-screen-page";
 class App extends Component {
     constructor (props) {
         super(props)
@@ -17,7 +18,8 @@ class App extends Component {
       return (
         <div className="app-component">
             <div>
-                <Route exact path="/" component={ScreenPage} />
+                <Route exact path="/old" component={ScreenPage} />
+                <Route exact path="/" component={NewScreenPage} />
             </div>
         </div>
       )

@@ -67,7 +67,7 @@ export default class ScreenFetcher extends Component{
 
     render(){
         return (
-            <Screen data={this.state.cells} x={this.x} y={this.y} pixelSize={25} pixelGap={3}/>
+            <Screen data={this.state.cells} x={this.x} y={this.y} pixelSize={25} pixelGap={3} externalStyle={this.props.externalStyle}/>
         )
     }
 

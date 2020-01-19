@@ -1,9 +1,6 @@
 import React, {Component} from "react"
 import PropTypes from 'prop-types'
 
-import './pixel.scss'
-
-
 class Pixel extends Component {
   constructor (props) {
       super(props)

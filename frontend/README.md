@@ -1,5 +1,12 @@
 # frontend
 
+https://onlineimagetools.com/resize-image
+https://compresspng.com/fr/
+https://www.base64-image.de/
+
+
+
+
 ## Local dev
 
 1) [Install nodejs](https://nodejs.org/en/download/current/)

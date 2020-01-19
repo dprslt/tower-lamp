@@ -78,11 +78,12 @@ module.exports = {
     new webpack.DefinePlugin({
       API_REST_URL: JSON.stringify('http://localhost:3000'),
       BASENAME_URL: JSON.stringify(''),
+      BACKEND_WS_URL: JSON.stringify("192.168.1.2:30008"),
     }),
     new HtmlWebpackPlugin({
         filename: path.resolve(__dirname, 'dist/index.html'),
         template: path.resolve(__dirname,'public/index.html'),
-        favicon: 'src/assets/favicon.ico',
+        favicon: 'src/assets/favicon.png',
         title: "DEV - Lamp"
     })
   ]

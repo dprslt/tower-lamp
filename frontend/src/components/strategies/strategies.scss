@@ -1,9 +1,34 @@
 
+
+
 .strategies{
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr) );
+  display: flex;
+  flex-flow: wrap;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-evenly;
+
+  & > * {
+    margin: 0.5em 1em;
+  }
 }
 
-h3{
-  text-align: center;
+
+.circle-strategy{
+  border-radius: 50%;
+  overflow: hidden;
+  border: solid 2px white;
+  box-shadow: -3px -3px 5px rgba(150, 150, 150, 0.2), 0px 0px 10px rgba(150, 150, 150, 0.6);
+
+  .konvajs-content {
+    border: none;
+  }
+
+  cursor: pointer;
+
+  &:hover{
+    border-color: rgba(228, 228, 228, 0.96);
+    box-shadow: -3px -3px 5px rgba(150, 150, 150, 0.4), 0px 0px 10px rgba(150, 150, 150, 0.8);
+  }
 }
+

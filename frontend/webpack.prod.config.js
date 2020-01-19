@@ -78,7 +78,7 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
         template: path.resolve(__dirname,'public/index.html'),
-        favicon: 'src/assets/favicon.ico',
+        favicon: 'src/assets/favicon.png',
         title: "Lamp"
     }),
     new ManifestPlugin()

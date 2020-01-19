@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 // REDUX
 // APP
 
-import Pixel from "../pixel/pixel"
+import Pixel from "./pixel"
 
 import './screen.scss'
 
@@ -18,7 +18,8 @@ class Screen extends Component {
         x: PropTypes.number,
         y: PropTypes.number,
         pixelSize: PropTypes.number,
-        pixelGap: PropTypes.number
+        pixelGap: PropTypes.number,
+        externalStyle: PropTypes.bool,
     };
 
 
@@ -28,10 +29,9 @@ class Screen extends Component {
 
     render() {
         return (
-          <div className="screen" style={{
+          <div className="screen" style={this.props.externalStyle ? {} : {
               gridTemplateColumns: "repeat("+this.props.x+", "+this.props.pixelSize+"px)",
               gridTemplateRows: "repeat("+this.props.y+", "+this.props.pixelSize+"px)",
-              gridGap: this.props.pixelGap
           }}>
             {this.renderCells()}
           </div>

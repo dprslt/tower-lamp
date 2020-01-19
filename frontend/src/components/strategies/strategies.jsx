@@ -1,30 +1,23 @@
 import React from 'react'
-import Strategy from "./strategy/strategy";
+import Strategy from "./oldstrategy/strategy";
 import './strategies.scss'
+import CircleStrategy from "./CircleStrategy";
+
+export const virtualScreenWidth = 8 * 20
+export const virtualScreenHeight = 21 * 20
+
 
 export default class Strategies extends React.Component {
-
 
     constructor(props, context) {
         super(props, context);
     }
 
     render(){
-        let strategies = null
-        if(this.props.strategies) {
-            strategies = this.props.strategies.map((s,i) => <Strategy strategy={s} playHandler={this.props.playHandler} key={i+""+s.name}/>)
-        }
-
         return (
-            <div className={"container-fluid"}>
-
-                <div className={'row mt-3'}>
-                    <div className={'col heading pl-5'}>
-                        <h3 className={"display-4"}>Animations</h3>
-                    </div>
-                </div>
+            <div className={""}>
                 <div className={"strategies"}>
-                    {strategies}
+                    {this.props.strategies && this.props.strategies.map(s => <CircleStrategy strategy={ {name:s.strategyName, params:s.params} } playHandler={this.props.playHandler}  key={s.name}/>)}
                 </div>
             </div>
 

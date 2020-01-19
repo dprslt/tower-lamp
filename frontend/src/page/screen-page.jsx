@@ -32,9 +32,11 @@ export default class ScreenPage extends Component {
             strategies: [],
             data: null,
             refresh: false,
+            dataUrl: ''
         }
 
         this.socket = null
+
     }
 
     componentDidMount(){
@@ -53,6 +55,10 @@ export default class ScreenPage extends Component {
             newState.strategies = data
             this.setState(newState)
         }.bind(this))
+
+        this.socket.on('screen-image', (dataUrl) => {
+            this.setState({...this.state, dataUrl})
+        })
     }
 
     playHandler(strategy){
@@ -338,19 +344,19 @@ export default class ScreenPage extends Component {
                 </div>
                 <div className={'root-container'}>
                     <div className={"strategies-container"}>
-                        <Strategies strategies={this.state.strategies} playHandler={this.playHandler}/>
-                        <div>
-                            <ImageUploader
-                                withIcon={false}
-                                withLabel={false}
-                                buttonText='Ajouter une image'
-                                onChange={this.onDrop}
-                                imgExtension={['.jpg', '.gif', '.png', '.gif']}
-                                maxFileSize={5242880}
-                                withPreview={true}
-                                singleImage={true}
-                            />
-                        </div>
+                        {/*<Strategies strategies={this.state.strategies} playHandler={this.playHandler}/>*/}
+                        {/*<div>*/}
+                        {/*    <ImageUploader*/}
+                        {/*        withIcon={false}*/}
+                        {/*        withLabel={false}*/}
+                        {/*        buttonText='Ajouter une image'*/}
+                        {/*        onChange={this.onDrop}*/}
+                        {/*        imgExtension={['.jpg', '.gif', '.png', '.gif']}*/}
+                        {/*        maxFileSize={5242880}*/}
+                        {/*        withPreview={true}*/}
+                        {/*        singleImage={true}*/}
+                        {/*    />*/}
+                        {/*</div>*/}
                     </div>
                     <div className={'screen-container'}>
                         <Button color={this.state.refresh ? 'danger' : 'success'} onClick={this.toggleRefresh} className={'w-100 mb-3'}>
@@ -377,8 +383,9 @@ export default class ScreenPage extends Component {
                         </div>
 
                         <canvas id={'canvas'} />
-                        {/*<ScreenFetcher socket={this.socket}/>*/}
+                        {<ScreenFetcher socket={this.socket}/>}
 
+                        <img src={this.state.dataUrl} alt={'Backend version of the screen'} className={'debug-screen-img'}/>
 
 
                         {/*<LocalScreenFetcher data={this.state.data}/>*/}
