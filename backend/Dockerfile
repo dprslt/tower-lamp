@@ -1,6 +1,4 @@
 FROM balenalib/raspberry-pi-debian-node:12-build
-#FROM arm32v7/node:13
-#FROM arm32v6/node:13-alpine
 
 WORKDIR /app
 
@@ -14,7 +12,7 @@ COPY . /app/
 RUN npm run build
 
 FROM balenalib/raspberry-pi-debian-node:12-run
+COPY --from=0 /app .
 WORKDIR /app
-COPY --from=0 /app/build /app/package.json ./
 
 ENTRYPOINT npm run start
