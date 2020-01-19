@@ -27,15 +27,14 @@ io.on('connection', () => {
 server.listen(30008)
 
 
-const fadeCandyConnection = new FadeCandyConnection("ws://192.168.1.71:7890")
+const fadeCandyConnection = new FadeCandyConnection(process.env.FADE_CANDY_URL || "ws://192.168.1.71:7890")
 fadeCandyConnection.connect()
 let fadeCandySocket = fadeCandyConnection.socket
 
 const screen = new CanvasScreen(8, 21, io, fadeCandySocket, 20)
-
 const factory = new CanvasStrategyFactory(screen)
 
-var animation : AbstractStrategy | null = null
+let animation : AbstractStrategy | null = null
 
 io.on('connection', (socket) => {
     socket.on('get-strategies', function (data) {
@@ -48,7 +47,7 @@ io.on('connection', (socket) => {
                 animation.unmount()
             }
 
-            console.log("Launching new strategy : " + data.name + ", parameters : " + (data.params))
+            console.log("Launching new strategy : " + data.name)
             animation = factory.getStrategyFromTemplate(data.name, data.params)
             if(animation){
                 animation.mount()

@@ -5,17 +5,15 @@ FROM balenalib/raspberry-pi-debian-node:12-build
 WORKDIR /app
 
 RUN apt update
-RUN apt install python
-RUN apt install build-essential
-RUN apt-get install -qq libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+RUN apt-get install -qq python build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
 
 COPY package.json .
 RUN npm install
 
 COPY . /app/
-RUN npm build
+RUN npm run build
 
-FROM balenalib/raspberry-pi-debian-node:12-build
+FROM balenalib/raspberry-pi-debian-node:12-run
 WORKDIR /app
 COPY --from=0 /app/build .
 

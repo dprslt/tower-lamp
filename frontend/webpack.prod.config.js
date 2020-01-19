@@ -73,8 +73,7 @@ module.exports = {
     }),
     new CleanWebpackPlugin(['dist']),
     new webpack.DefinePlugin({
-      API_REST_URL: JSON.stringify('http://lamp/api'),
-      BASENAME_URL: JSON.stringify('/')
+      BACKEND_WS_URL: JSON.stringify("192.168.1.71:30008"),
     }),
     new HtmlWebpackPlugin({
         template: path.resolve(__dirname,'public/index.html'),

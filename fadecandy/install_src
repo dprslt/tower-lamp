@@ -1,0 +1,12 @@
+c_def="\e[39m"
+c_red="\e[91m"
+c_green="\e[92m"
+c_blue="\e[96m"
+
+s_def="\e[0m"
+s_dim="\e[2m"
+
+DAEMON_NAME="lamp-fc-server"
+
+DAEMON_PATH="/srv/$DAEMON_NAME/"
+SERVICE_PATH="/etc/systemd/system/$DAEMON_NAME"
