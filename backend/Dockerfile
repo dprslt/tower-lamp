@@ -15,6 +15,6 @@ RUN npm run build
 
 FROM balenalib/raspberry-pi-debian-node:12-run
 WORKDIR /app
-COPY --from=0 /app/build .
+COPY --from=0 /app/build /app/package.json ./
 
 ENTRYPOINT npm run start
