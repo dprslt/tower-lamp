@@ -1,8 +1,8 @@
 import '@babel/polyfill'
-import {CanvaScreen} from "./src/screen/CanvaScreen";
+import {CanvasScreen} from "./src/screen/CanvasScreen";
 import { createCanvas, loadImage } from 'canvas';
 
-const canvaScreen = new CanvaScreen(100,500, null, null, 10)
+const canvaScreen = new CanvasScreen(100,500, null, null, 10)
 
 
 

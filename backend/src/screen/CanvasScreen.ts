@@ -1,32 +1,35 @@
     import Konva from 'konva-node'
-    import canvas from 'canvas'
-    import nj from 'numjs'
-    import {Screen} from "./Screen";
-    import {createCanvas, loadImage} from 'canvas';
+    import {Screen} from "./Screen"
     import getPixels from 'get-pixels'
+    import {Server, Socket} from "socket.io"
+    import {Stage} from "konva/types/Stage"
+    import {Layer} from "konva/types/Layer"
+    import {Rect} from "konva/types/shapes/Rect";
     import {arrayToRbgString} from "../Utils";
+    import {PixelsArray, RGBColor} from "../types";
+    import WebSocket from "ws"
 
 
-    export class CanvaScreen extends Screen {
+    export class CanvasScreen extends Screen {
 
-        zoomFactor;
+        private readonly zoomFactor: number;
 
-        konvaStage;
-        pixelMatrix;
-        pixelMatrixLayer;
-        pixelHidden = true;
+        private readonly konvaStage : Stage
+        private pixelMatrixLayer!: Layer
+        private pixelMatrix: Map<String, Rect> = new Map()
+        private pixelHidden = true
+        private refreshIntervalId : NodeJS.Timeout | undefined;
 
 
-        constructor(width, height, socketFrontend, socketFadeCandy, zoomFactor) {
-            super(width, height, socketFrontend, socketFadeCandy)
+
+        constructor(width: number, height: number, serverSocketFrontend: Server, socketFadeCandy: WebSocket, zoomFactor: number) {
+            super(width, height, serverSocketFrontend, socketFadeCandy)
 
             this.zoomFactor = zoomFactor
-
 
             this.konvaStage = new Konva.Stage({
                 ...this.getCanvasSize()
             })
-
 
             this.initializePixelMatrix()
             this.showPixels()
@@ -40,8 +43,12 @@
         }
 
         initializePixelMatrix() {
-            this.pixelMatrix = {}
+            this.pixelMatrix = new Map<String, Rect>()
+            if(this.pixelMatrixLayer){
+                this.pixelMatrixLayer.destroy()
+            }
             this.pixelMatrixLayer = new Konva.Layer()
+
 
             for (let x = 0; x < this.width; x++) {
                 for (let y = 0; y < this.height; y++) {
@@ -52,22 +59,9 @@
                         width: this.zoomFactor,
                         fill: 'black'
                     })
-                    this.pixelMatrix[`${x}-${y}`] = pixel
+                    this.pixelMatrix.set(`${x}-${y}`, pixel)
                     this.pixelMatrixLayer.add(pixel)
                 }
-            }
-        }
-
-
-        setPixel(x, y, pixelValue, draw = false) {
-            let pixel = this.pixelMatrix[`${x}-${y}`]
-            if(pixel){
-                pixel.fill(arrayToRbgString(pixelValue))
-                if(draw){
-                    pixel.draw()
-                }
-            } else {
-                throw "Out of screen Exception"
             }
         }
 
@@ -79,22 +73,34 @@
             }
         }
 
-        setRow(y, value) {
+
+        setPixel(x: number, y: number, pixelValue: RGBColor, draw: boolean = false) {
+            let pixel = this.pixelMatrix.get(`${x}-${y}`)
+            if(pixel){
+                pixel.fill(arrayToRbgString(pixelValue))
+                if(draw){
+                    pixel.draw()
+                }
+            } else {
+                throw "Out of screen Exception"
+            }
+        }
+
+        setRow(y: number, value: RGBColor) {
             super.setRow(y, value)
             this.pixelMatrixLayer.batchDraw()
         }
 
-        setCol(x, value) {
+        setCol(x: number, value: RGBColor) {
             super.setCol(x, value)
             this.pixelMatrixLayer.batchDraw()
         }
 
-        setPixels(value) {
+        setPixels(value: RGBColor) {
             for (let i = 0; i < this.width; i++) {
                 this.setCol(i, value)
             }
         }
-
 
         pickRandomPixel() {
             return super.pickRandomPixel();
@@ -103,14 +109,14 @@
         async flat() {
 
             const dataUrl = this.konvaStage.toDataURL({pixelRatio: 1 / this.zoomFactor})
-            const promise = new Promise((resolve, reject) => getPixels(dataUrl, (err, pixels) => {
+            const loadImagePromise = new Promise<PixelsArray>((resolve, reject) => getPixels(dataUrl, (err: any, pixels: PixelsArray) => {
                 if (err) {
                     reject()
                 } else {
                     resolve(pixels)
                 }
             }))
-            const imageObject = await promise
+            const imageObject = await loadImagePromise
             // The output is a flat array of RGBA data, pixel were read line by line right to left
             const myImgData = imageObject.data
 
@@ -159,22 +165,24 @@
             }
         }
 
-        registerLayer(layer){
+        registerLayer(layer: Layer){
             this.konvaStage.add(layer)
             this.konvaStage.batchDraw()
         }
 
-        unregisterLayer(layer){
+        unregisterLayer(layer: Layer){
             layer.remove()
         }
 
         start(){
-            this.interval = setInterval(() => {
+            this.refreshIntervalId = setInterval(() => {
                 this.refresh()
             }, 1000 / 40)
         }
 
         stop(){
-            clearInterval(this.interval)
+            if(this.refreshIntervalId){
+                clearInterval(this.refreshIntervalId)
+            }
         }
     }

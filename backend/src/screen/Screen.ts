@@ -1,47 +1,41 @@
-import nj from 'numjs'
 import {getRandomInt} from "../Utils"
+import {Pos, RGBColor} from "../types";
+import SocketIO from "socket.io";
+import WebSocket from "ws"
 
-export class Screen {
-    width;
-    height;
 
-    socketFadeCandy;
-    socketFrontend;
+export abstract class Screen {
+    protected readonly width : number;
+    protected readonly height: number;
 
-    data
+    socketFadeCandy: WebSocket;
+    socketFrontend: SocketIO.Server;
 
-    constructor(width, height, socketFrontend, socketFadeCandy) {
+
+    constructor(width: number, height: number, socketFrontend: SocketIO.Server, socketFadeCandy: WebSocket) {
         this.width = width
         this.height = height
         this.socketFrontend = socketFrontend
         this.socketFadeCandy = socketFadeCandy
-
-        this.erase()
     }
 
-    erase(){
-        this.data = nj.zeros([this.width, this.height, 3])
-    }
+    abstract erase() : void;
 
-    setPixel(x,y, pixelValue){
-        this.data.set(x, y, 0, pixelValue[0])
-        this.data.set(x, y, 1, pixelValue[1])
-        this.data.set(x, y, 2, pixelValue[2])
-    }
+    abstract setPixel(x:number,y: number, pixelValue: RGBColor): void
 
-    setRow(y, value){
+    setRow(y: number, value : RGBColor){
         for (let i = 0; i < this.width; i++){
             this.setPixel(i,y, value)
         }
     }
 
-    setCol(x, value){
+    setCol(x : number, value: RGBColor){
         for (let i = 0; i < this.height; i++){
             this.setPixel(x,i, value)
         }
     }
 
-    pickRandomPixel(){
+    pickRandomPixel() : Pos{
         return {
             x: getRandomInt(this.width),
             y: getRandomInt(this.height)
@@ -50,11 +44,9 @@ export class Screen {
 
     /**
      * Convert the 3D local matrix to a linear array containing all the pixel info to send to the FadeCandy.
-     * @return {Promise<NdArray>}
+     * @return {Promise<number[]>}
      */
-    async flat(){
-        return this.data.reshape(1,this.width * this.height * 3).flatten()
-    }
+    abstract async flat() : Promise<number[]>
 
     /**
      * Convert the local screen to the fadecandy format.
@@ -62,21 +54,14 @@ export class Screen {
      * @return {Array}
      */
     async toFadeCandy(){
-        return nj.concatenate([0,0,0,0], await this.flat()).tolist()
+        return [0,0,0,0].concat(await this.flat())
     }
 
-    /**
-     * Replace the current screen with the given data
-     * @param fullFrame
-     */
-    injectFlatData(fullFrame) {
-        this.data = nj.array(fullFrame).reshape([this.width, this.height, 3])
-    }
 
     /**
      * Directly send a frame to the fade candy without touching the stored screen
      */
-    displayRowFrame(flatennedFrame){
+    displayRowFrame(flatennedFrame : number[]) : void{
         if(this.socketFadeCandy) {
             if(this.socketFadeCandy.readyState === 1){
                 const packet = new Uint8Array(flatennedFrame)
@@ -87,10 +72,10 @@ export class Screen {
         }
     }
 
-        /**
+    /**
      * Send the current screen to the Fadecandy.
      */
-    async refresh(){
+    async refresh(): Promise<void> {
         const pixelArray = await this.toFadeCandy()
         if(this.socketFrontend) {
             this.socketFrontend.emit("screen-update", pixelArray)

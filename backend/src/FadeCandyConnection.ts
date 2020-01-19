@@ -2,12 +2,18 @@
 import WebSocket from "ws"
 
 export default class FadeCandyConnection{
+    get socket(): WebSocket {
+        if(this._socket){
+            return this._socket;
+        }
+        throw new Error("You must call connect Before");
+    }
 
-    fadeCandySocketURL;
+    private readonly fadeCandySocketURL: string;
+    private _socket: WebSocket | undefined = undefined;
+    private timeout: NodeJS.Timeout | null = null;
 
-    socket;
-
-    constructor(fadeCandySocketURL) {
+    constructor(fadeCandySocketURL: string) {
         this.fadeCandySocketURL = fadeCandySocketURL
     }
 
@@ -15,19 +21,19 @@ export default class FadeCandyConnection{
 
         console.log("Trying to connect to the FadeCandy")
 
-        if(this.socket) {
+        if(this._socket) {
             console.log("Terminating the existing connection")
-            this.socket.terminate()
+            this._socket.terminate()
         }
 
-        this.socket = new WebSocket(this.fadeCandySocketURL)
-        this.socket.onerror = () => {
+        this._socket = new WebSocket(this.fadeCandySocketURL)
+        this._socket.onerror = () => {
             console.error('Unable to connect to the fadecandy')
         }
-        this.socket.onopen = () => {
+        this._socket.onopen = () => {
             console.log('Connected to the fadeCandy')
         }
-        this.socket.onclose = () => {
+        this._socket.onclose = () => {
             console.error('Connection to the fadecandy fail. Reconnecting')
             if(this.timeout){
                 clearTimeout(this.timeout)
@@ -37,9 +43,9 @@ export default class FadeCandyConnection{
 
     }
 
-    getStatus(){
-        if(this.socket){
-            return this.socket.readyState
+    getStatus() : number{
+        if(this._socket){
+            return this._socket.readyState
         }
         return WebSocket.CLOSED;
     }

@@ -1,11 +1,21 @@
-import Canvas from "canvas";
+import Konva from 'konva-node'
+import Canvas from "canvas"
+import AbstractStrategy from "./AbstractStrategy"
+import {CanvasScreen} from "../screen/CanvasScreen"
+import {Layer} from "konva/types/Layer"
+import {Rect} from "konva/types/shapes/Rect";
+import {Image} from "konva/types/shapes/Image";
+import {Tween} from "konva/types/Tween";
 
 
-export default class ImageStrategy {
+export default class ImageStrategy extends AbstractStrategy {
 
-    constructor(canvasScreen, params) {
-        this.canvasScreen = canvasScreen
-        this.params = params
+    private readonly layer: Layer
+    private readonly fill: Image
+    private animation: Tween;
+
+    public constructor(canvasScreen: CanvasScreen, params: any) {
+        super(canvasScreen, params)
 
         this.layer = new Konva.Layer()
 
@@ -30,6 +40,7 @@ export default class ImageStrategy {
             onFinish: () => {
                 this.startAnimationReverse()
             },
+            // On reset is called when the Animation Reverse is over.
             onReset: () => {
                 this.startAnimation()
             },

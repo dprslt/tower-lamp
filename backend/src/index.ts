@@ -3,13 +3,12 @@ import cors from 'cors'
 import http from 'http'
 import ioServer from 'socket.io'
 import express from 'express'
-import Konva from 'konva-node'
 
-import {CanvaScreen} from "./screen/CanvaScreen";
-import Canvas from "canvas";
+import {CanvasScreen} from "./screen/CanvasScreen";
 import FadeCandyConnection from "./FadeCandyConnection";
 import ColorStrategy from "./canvasStrategies/ColorStrategy";
 import CanvasStrategyFactory from "./CanvasStrategyFactory";
+import AbstractStrategy from "./canvasStrategies/AbstractStrategy";
 
 
 console.log("Server starting")
@@ -27,16 +26,16 @@ io.on('connection', () => {
 })
 server.listen(30008)
 
-const fadeCandyConnection = new FadeCandyConnection("ws://192.168.1.71:7890")
 
+const fadeCandyConnection = new FadeCandyConnection("ws://192.168.1.71:7890")
 fadeCandyConnection.connect()
 let fadeCandySocket = fadeCandyConnection.socket
 
-const screen = new CanvaScreen(8, 21, io, fadeCandySocket, 20)
+const screen = new CanvasScreen(8, 21, io, fadeCandySocket, 20)
 
 const factory = new CanvasStrategyFactory(screen)
 
-var animation = null
+var animation : AbstractStrategy | null = null
 
 io.on('connection', (socket) => {
     socket.on('get-strategies', function (data) {
@@ -51,7 +50,11 @@ io.on('connection', (socket) => {
 
             console.log("Launching new strategy : " + data.name + ", parameters : " + (data.params))
             animation = factory.getStrategyFromTemplate(data.name, data.params)
-            animation.mount()
+            if(animation){
+                animation.mount()
+            } else {
+                console.error("Not strategy found for name "+ data.name)
+            }
         } catch (e) {
             console.error("Error while applying the new strategy.")
             console.error(e)
@@ -99,7 +102,7 @@ io.on('connection', (socket) => {
 })
 
 
-//animation = new ColorStrategy(screen, {fill: 'blue'})
+// Running the default animation
 animation = new ColorStrategy(screen, {
     fillLinearGradientStartPoint: { x: screen.getCanvasSize().width, y: screen.getCanvasSize().height },
     fillLinearGradientEndPoint: { x: 0, y: 0 },
@@ -108,12 +111,5 @@ animation = new ColorStrategy(screen, {
 animation.mount()
 
 screen.start()
-
-//animation = new RandomizeStrategy(screen, ()=> getRandomInt(255),()=> getRandomInt(255),()=> getRandomInt(255), 500, 0.8, 20)
-//animation = new CircleStrategy(screen, 255,75,10, 40 )
-//animation = RedRandomizeStrategy(screen, 500, 0.8, 20)
-//animation = BlueRandomizeStrategy(screen, 200, 0.8, 20)
-//animation = GreenRandomizeStrategy(screen, 200, 0.8, 10)
-//animation.start()
 
 
