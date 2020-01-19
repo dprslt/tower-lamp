@@ -11,8 +11,4 @@ RUN npm install
 COPY . /app/
 RUN npm run build
 
-FROM balenalib/raspberry-pi-debian-node:12-run
-COPY --from=0 /app .
-WORKDIR /app
-
 ENTRYPOINT npm run start

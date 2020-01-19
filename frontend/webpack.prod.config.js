@@ -74,7 +74,7 @@ module.exports = {
     new CleanWebpackPlugin(['dist']),
     new webpack.DefinePlugin({
       BACKEND_WS_URL: JSON.stringify("192.168.1.71:30008"),
-      BASENAME_URL: '/'
+      BASENAME_URL: JSON.stringify('/')
     }),
     new HtmlWebpackPlugin({
         template: path.resolve(__dirname,'public/index.html'),
