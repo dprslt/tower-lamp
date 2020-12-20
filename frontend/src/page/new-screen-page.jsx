@@ -5,18 +5,18 @@ import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
 
 // APP
-import Strategies from "../components/strategies/strategies";
+import Strategies from "../components/strategies/strategies"
 import ScreenFetcher from '../components/screen/screen-fetcher'
-import {readAndCompressImage} from 'browser-image-resizer';
-import ImageUploader from 'react-images-upload';
+import {readAndCompressImage} from 'browser-image-resizer'
+import ImageUploader from 'react-images-upload'
 import io from 'socket.io-client'
 import './screen-page.scss'
-import LocalScreenFetcher from "../components/screen/local-screen-fetcher";
-import {Circle, Layer, Stage, Rect} from "react-konva";
-import Konva from 'konva';
-import {Badge, Button, Col, Container, Row} from "reactstrap";
-import HeaderBar from "../components/header/HeaderBar";
-import {colors, images} from "../components/strategies/strategies-data";
+import LocalScreenFetcher from "../components/screen/local-screen-fetcher"
+import {Circle, Layer, Stage, Rect} from "react-konva"
+import Konva from 'konva'
+import {Badge, Button, Col, Container, Row} from "reactstrap"
+import HeaderBar from "../components/header/HeaderBar"
+import {colors, images} from "../components/strategies/strategies-data"
 
 
 function getRandomInt(max) {
@@ -28,6 +28,7 @@ export default class NewScreenPage extends Component {
         super(props, context)
 
         this.playHandler = this.playHandler.bind(this)
+        this.mobileToggle = this.mobileToggle.bind(this)
 
         this.state = {
             data: null,
@@ -35,6 +36,7 @@ export default class NewScreenPage extends Component {
             dataUrl: '',
             connected: false,
             socket: null,
+            showScreenOnMobile: false,
         }
 
         this.socket = null
@@ -67,9 +69,20 @@ export default class NewScreenPage extends Component {
         this.socket.emit("select-strategy", (strategy))
     }
 
+    mobileToggle() {
+        this.setState((state) => ({showScreenOnMobile: !state.showScreenOnMobile}))
+    }
+
     render() {
+
+        const {showScreenOnMobile} = this.state
         return <div>
-            <HeaderBar status={this.state.connected} playHandler={this.playHandler} />
+            <HeaderBar 
+                status={this.state.connected} 
+                playHandler={this.playHandler}
+                toggleScreen={this.mobileToggle}
+                screenEnable={this.state.showScreenOnMobile}   
+            />
 
             <div className={'small-screen'}>
                 <ScreenFetcher socket={this.socket} externalStyle/>
@@ -77,7 +90,7 @@ export default class NewScreenPage extends Component {
 
             <Container fluid={true}>
                 <Row>
-                    <Col className={'content mt-4'}>
+                    <Col className={'content mt-4'+`${showScreenOnMobile ? ' d-none d-sm-block' : ''}`}>
                         <h4>Couleurs :</h4>
                         <div className={"strategies-container basic-strategies"}>
                             <Strategies playHandler={this.playHandler} strategies={colors}/>
@@ -87,7 +100,7 @@ export default class NewScreenPage extends Component {
                             <Strategies playHandler={this.playHandler} strategies={images}/>
                         </div>
                     </Col>
-                    <Col sm={'auto'} className={'d-none d-sm-block'}>
+                    <Col sm={'auto'} className={`${showScreenOnMobile ? 'd-block' : 'd-none d-sm-block'}`}>
                         <div className={'screen-container'}>
                             <ScreenFetcher socket={this.socket}/>
                         </div>

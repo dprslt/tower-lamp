@@ -46,12 +46,25 @@
     }
   }
 
-  .off {
+
+  .menu-icon {
     color: #5c5c5c;
     cursor: pointer;
     font-size: 110%;
     width: 30px;
     text-align: center;
+  }
+
+  .mobile{
+    font-size: 130%;
+  }
+
+  .active{
+    color:rgba(9, 141, 230, 0.92)
+  }
+
+  .off {
+   
     &:hover{
       color: rgba(255, 65, 18, 0.92);
     }

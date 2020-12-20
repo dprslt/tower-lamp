@@ -338,7 +338,7 @@ export default class ScreenPage extends Component {
                 <div className={"container-fluid"}>
                     <div className={"row"}>
                         <div className={'col heading text-center mt-5 mb-5'}>
-                            <h1 className={"display-4"}>NOTRE LAMPE</h1>
+                            <h1 className={"display-4"}>LAMPE</h1>
                         </div>
                     </div>
                 </div>
