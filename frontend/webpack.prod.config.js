@@ -73,7 +73,7 @@ module.exports = {
     }),
     new CleanWebpackPlugin(['dist']),
     new webpack.DefinePlugin({
-      BACKEND_WS_URL: JSON.stringify("192.168.1.71:30008"),
+      BACKEND_WS_URL: JSON.stringify("lamp.local.dprslt.fr:30008"),
       BASENAME_URL: JSON.stringify('/')
     }),
     new HtmlWebpackPlugin({
