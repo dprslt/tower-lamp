@@ -1,53 +1,28 @@
 # frontend
 
-https://onlineimagetools.com/resize-image
-https://compresspng.com/fr/
-https://www.base64-image.de/
-
-
-
+Vite + React 18 SPA. Socket.IO v2 client (socket.io-client 2.5.0 — do NOT upgrade to v4, the backend runs socket.io v2).
 
 ## Local dev
 
-1) [Install nodejs](https://nodejs.org/en/download/current/)
-
-2) [Install yarn](https://yarnpkg.com/lang/en/docs/install/)
-
-3) In admin powershell :
-```
-npm install --global --production windows-build-tools
-npm install --global flow-typed
-yarn install
-yarn start
+```bash
+npm install
+npm run dev        # http://localhost:7085
+npm run test       # vitest run (smoke tests in src/test/)
+npm run lint       # eslint src
+npm run build      # vite build -> dist/
 ```
 
+The backend Socket.IO server address is `VITE_BACKEND_WS_URL` (optional). When unset it is derived from the page's own hostname at runtime (`<location.hostname>:30008`), so the same build works in dev and on the Pi. See `.env.example`; the Docker build can bake it via build arg.
 
-## Project archi
+## Project structure
 
-### src/ :
-
-__app :__ Contains the main script of the website and his stylesheet
-
-__assets :__ Contains the assets (images, icones)
-
-__components :__ Contains basic react components (alert,indicator,map...), the dashboards and the different website pages
-
-__store :__ Contains the store's actions and reducers (redux)
-
-__styles :__ Contains the stylesheets (.scss)
-
-__utils :__ Contains the utilities 
-
+- `src/main.jsx` — entry point (BrowserRouter + App)
+- `src/app/` — main script + global stylesheet (bootstrap scss)
+- `src/page/` — pages: `/` (new screen + strategy pickers), `/old` (legacy debug canvas page)
+- `src/components/` — screen grid (Screen/Pixel/ScreenFetcher), strategies (CircleStrategy + embedded images), header
+- `src/assets/` → `public/` — assets (favicon)
+- `src/test/` — smoke tests (Vitest + Testing Library, socket mocked)
 
 ## Déploiement en prod
 
-Il faut activer la gestion de l'historique dans NGINX.
-
-https://www.georg-ledermann.de/blog/2018/04/27/dockerize-and-configure-javascript-single-page-application/
-
-## Etude de la taille du bundle
-
-```bash
-npm run build
-npm run bundle-report
-```
+Dockerfile builds with Vite in node:20-alpine, serves the SPA with nginx (`nginx.conf` has the history fallback). Optional build arg: `VITE_BACKEND_WS_URL`; if unset the app talks to `<page-host>:30008`.

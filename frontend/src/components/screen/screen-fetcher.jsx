@@ -1,5 +1,4 @@
-import React, {Component} from "react"
-import io from "socket.io-client";
+import {Component} from "react"
 import Screen from "./screen";
 
 
@@ -59,7 +58,7 @@ export default class ScreenFetcher extends Component{
         }
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
+    componentDidUpdate(prevProps) {
         if(!prevProps.socket && this.props.socket){
             this.props.socket.on('screen-update', this.updateScreen.bind(this))
         }

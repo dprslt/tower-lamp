@@ -1,27 +1,15 @@
 //REACT
-import React, {Component} from "react"
-import PropTypes from 'prop-types'
-// REDUX
-import {connect} from 'react-redux'
+import {Component} from "react"
 
 // APP
 import Strategies from "../components/strategies/strategies"
 import ScreenFetcher from '../components/screen/screen-fetcher'
-import {readAndCompressImage} from 'browser-image-resizer'
-import ImageUploader from 'react-images-upload'
 import io from 'socket.io-client'
 import './screen-page.scss'
-import LocalScreenFetcher from "../components/screen/local-screen-fetcher"
-import {Circle, Layer, Stage, Rect} from "react-konva"
-import Konva from 'konva'
-import {Badge, Button, Col, Container, Row} from "reactstrap"
+import {Col, Container, Row} from "reactstrap"
 import HeaderBar from "../components/header/HeaderBar"
 import {colors, images} from "../components/strategies/strategies-data"
-
-
-function getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max))
-}
+import BACKEND_WS_URL from "../backend-url"
 
 export default class NewScreenPage extends Component {
     constructor(props, context) {
@@ -62,6 +50,12 @@ export default class NewScreenPage extends Component {
             console.log("Connection lost with the backend")
             this.setState({connected: false})
         })
+    }
+
+    componentWillUnmount() {
+        if (this.socket) {
+            this.socket.close()
+        }
     }
 
     playHandler(strategy) {

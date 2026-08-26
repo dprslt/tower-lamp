@@ -1,5 +1,4 @@
 import React from 'react'
-import Strategy from "./oldstrategy/strategy";
 import './strategies.scss'
 import CircleStrategy from "./CircleStrategy";
 
