@@ -80,6 +80,41 @@ test('flat() reads columns bottom-to-top, left-to-right', async () => {
     assert.deepEqual(flat.slice(-3), [0, 0, 255])
 })
 
+test('injectFlatData then flat() preserves the frame as-is', async () => {
+    const screen = newScreen()
+    screen.erase()
+    const frame = new Array(8 * 21 * 3).fill(0)
+    for (let i = 0; i < frame.length; i++) {
+        frame[i] = (i * 7) % 256
+    }
+
+    screen.injectFlatData(frame)
+    const flat = await screen.flat()
+
+    assert.deepEqual(flat, frame)
+})
+
+test('injectFlatData maps the frame bottom to the first packet row', async () => {
+    const screen = newScreen()
+    screen.erase()
+    const frame = new Array(8 * 21 * 3).fill(0)
+    frame[0] = 255
+    frame[20 * 3] = 255
+
+    screen.injectFlatData(frame)
+    const flat = await screen.flat()
+
+    assert.deepEqual(flat.slice(0, 3), [255, 0, 0])
+    assert.deepEqual(flat.slice(20 * 3, 20 * 3 + 3), [255, 0, 0])
+    assert.deepEqual(flat.slice(3, 6), [0, 0, 0])
+})
+
+test('injectFlatData rejects frames of the wrong length', () => {
+    const screen = newScreen()
+    screen.erase()
+    assert.throws(() => screen.injectFlatData(new Array(10).fill(0)))
+})
+
 test('ColorStrategy solid fill covers the whole frame', async () => {
     const screen = newScreen()
     const strategy = new ColorStrategy(screen, {fill: '#ff8800'})

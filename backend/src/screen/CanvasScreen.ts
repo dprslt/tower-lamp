@@ -59,6 +59,19 @@ export class CanvasScreen extends Screen {
         this.cellMatrix[x][y] = pixelValue
     }
 
+    injectFlatData(fullFrame: number[]) {
+        const expectedLength = this.width * this.height * 3
+        if (!Array.isArray(fullFrame) || fullFrame.length !== expectedLength) {
+            throw new Error(`Invalid frame length: expected ${expectedLength}, got ${Array.isArray(fullFrame) ? fullFrame.length : typeof fullFrame}`)
+        }
+        for (let x = 0; x < this.width; x++) {
+            for (let y = 0; y < this.height; y++) {
+                const sourceIndex = (x * this.height + (this.height - 1 - y)) * 3
+                this.cellMatrix[x][y] = [fullFrame[sourceIndex], fullFrame[sourceIndex + 1], fullFrame[sourceIndex + 2]]
+            }
+        }
+    }
+
     setRow(y: number, value: RGBColor) {
         super.setRow(y, value)
     }
