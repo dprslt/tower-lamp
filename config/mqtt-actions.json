@@ -10,5 +10,9 @@
   "fireworks": {
     "strategy": "fireworks",
     "params": {}
+  },
+  "stop": {
+    "strategy": "off",
+    "params": {}
   }
 }

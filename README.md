@@ -109,8 +109,9 @@ appears automatically in Home Assistant (MQTT discovery).
 Named strategies can be registered and exposed to HA as MQTT button entities,
 one per action, via discovery. The registry is a JSON object mapping an action
 id to a strategy + params. A default registry ships in
-[`config/mqtt-actions.json`](config/mqtt-actions.json) (`sunset` gradient +
-`fireworks`); deploy it to the Pi and point `MQTT_ACTIONS` at it:
+[`config/mqtt-actions.json`](config/mqtt-actions.json) (`sunset` gradient,
+`fireworks` and a `stop` button); deploy it to the Pi and point `MQTT_ACTIONS`
+at it:
 
 ```bash
 sudo install -m 640 -o root -g lamp config/mqtt-actions.json /etc/lamp-backend/actions.json
