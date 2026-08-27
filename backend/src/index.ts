@@ -60,6 +60,21 @@ io.on('connection', (socket) => {
             console.error(e)
         }
     })
+
+    socket.on('matrix-frame', function (data) {
+        try {
+            if (animation) {
+                animation.unmount()
+            }
+
+            screen.erase()
+            screen.injectFlatData(data)
+            screen.refresh()
+        } catch (e) {
+            console.error("Error while applying the new matrix frame.")
+            console.error(e)
+        }
+    })
 })
 
 
