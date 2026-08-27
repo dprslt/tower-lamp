@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/with-port.mjs vite",
+"dev": "node scripts/with-port.mjs vite",
+    "dev:log": "node -e \"require('fs').mkdirSync('logs',{recursive:true})\" && node scripts/with-port.mjs vite >> logs/frontend.log 2>&1",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src",

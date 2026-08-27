@@ -32,6 +32,8 @@ FadeCandy board, controlled through a web UI.
 ### Backend (`backend/`)
 
 - `npm run dev` — run from TypeScript sources via tsx watch (dev)
+- `npm run dev:log` — same as `dev`, but stdout+stderr are appended to
+  `logs/backend.log` (read this file instead of terminal output; see Gotchas)
 - `npm run preview` — headless strategy preview CLI (`src/preview.ts`), renders
   frames without the lamp (see `.opencode/skills/lamp-preview/`)
 - `npm run build` — compile TS to `build/` via tsc
@@ -41,6 +43,8 @@ FadeCandy board, controlled through a web UI.
 ### Frontend (`frontend/`)
 
 - `npm run dev` — Vite dev server (port 7085)
+- `npm run dev:log` — same as `dev`, but stdout+stderr are appended to
+  `logs/frontend.log` (read this file instead of terminal output; see Gotchas)
 - `npm run test` — vitest (smoke tests in `src/test/`)
 - `npm run lint` — `eslint src`
 - `npm run build` — production build to `dist/`
@@ -124,6 +128,11 @@ dev machine and it drives the FadeCandy that lives on the lamp over the LAN
 - `.gitignore` lists `.gitignore` itself (harmless quirk). `node_modules/`,
   `build/`, `.idea/` are ignored.
 - Backend license is MIT, frontend is ISC (as declared in their package.json).
+- **Local dev logs**: `npm run dev:log` in `backend/` and `frontend/` runs the
+  dev server with stdout+stderr appended to `backend/logs/backend.log` and
+  `frontend/logs/frontend.log` (the `logs/` dir is created on start and
+  git-ignored). Agents should read those files instead of terminal output — a
+  server started by someone else (or by another agent) only writes there.
 - Logging uses `console` in the backend (there is a `log4js` dependency but it
   is not wired up).
 
