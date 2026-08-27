@@ -7,7 +7,7 @@ import io from 'socket.io-client'
 import './screen-page.scss'
 import {Circle, Layer, Stage, Rect} from "react-konva"
 import Konva from 'konva'
-import {Button} from "reactstrap"
+import {Box, Button, Heading, VStack} from "@chakra-ui/react"
 import BACKEND_WS_URL from "../backend-url"
 
 
@@ -224,64 +224,41 @@ export default class ScreenPage extends Component {
 
     render() {
         return (
-            <div >
-                <div className={"container-fluid"}>
-                    <div className={"row"}>
-                        <div className={'col heading text-center mt-5 mb-5'}>
-                            <h1 className={"display-4"}>LAMPE</h1>
-                        </div>
-                    </div>
-                </div>
-                <div className={'root-container'}>
-                    <div className={"strategies-container"}>
-                        {/*<Strategies strategies={this.state.strategies} playHandler={this.playHandler}/>*/}
-                        {/*<div>*/}
-                        {/*    <ImageUploader*/}
-                        {/*        withIcon={false}*/}
-                        {/*        withLabel={false}*/}
-                        {/*        buttonText='Ajouter une image'*/}
-                        {/*        onChange={this.onDrop}*/}
-                        {/*        imgExtension={['.jpg', '.gif', '.png', '.gif']}*/}
-                        {/*        maxFileSize={5242880}*/}
-                        {/*        withPreview={true}*/}
-                        {/*        singleImage={true}*/}
-                        {/*    />*/}
-                        {/*</div>*/}
-                    </div>
-                    <div className={'screen-container'}>
-                        <Button color={this.state.refresh ? 'danger' : 'success'} onClick={this.toggleRefresh} className={'w-100 mb-3'}>
+            <Box minH="100vh" bg="bg" px={4} textAlign="center">
+                <Heading as="h1" size="2xl" fontFamily="heading" my={10}>LAMPE</Heading>
+                <Box className={'screen-container'} width="fit-content" margin="25px auto">
+                    <VStack gap={3} mb={3}>
+                        <Button colorScheme={this.state.refresh ? 'red' : 'green'} onClick={this.toggleRefresh} w="100%">
                             {this.state.refresh ? 'OFF' : 'ON'}
                         </Button>
 
-                        <Button color={'warning'} onClick={this.clean} className={'w-100 mb-3'}>
+                        <Button colorScheme={'orange'} onClick={this.clean} w="100%">
                             Clear
                         </Button>
-                        <div>
-                            <Stage height={210 * this.factor} width={80 * this.factor} className={'konva'} ref={(ref)=> this.stage = ref}
-                                   onMouseDown={this.mouseDownHandler}
-                                   onMouseUp={this.mouseUpHandler}
-                                   onMouseMove={this.mouseMoveHandler}
+                    </VStack>
+                    <div>
+                        <Stage height={210 * this.factor} width={80 * this.factor} className={'konva'} ref={(ref)=> this.stage = ref}
+                               onMouseDown={this.mouseDownHandler}
+                               onMouseUp={this.mouseUpHandler}
+                               onMouseMove={this.mouseMoveHandler}
 
-                            >
-                                <Layer ref={(ref)=> this.layer = ref}>
-                                    <Circle x={50} y={20} radius={20 * this.factor} fill="#8524c3" onClick={this.moveTo}
-                                            draggable
-                                    />
-                                    {/*{this.renderLines()}*/}
-                                </Layer>
-                            </Stage>
-                        </div>
-
-                        <canvas id={'canvas'} />
-                        {<ScreenFetcher socket={this.socket}/>}
-
-                        <img src={this.state.dataUrl} alt={'Backend version of the screen'} className={'debug-screen-img'}/>
-
-
-                        {/*<LocalScreenFetcher data={this.state.data}/>*/}
+                        >
+                            <Layer ref={(ref)=> this.layer = ref}>
+                                <Circle x={50} y={20} radius={20 * this.factor} fill="#8524c3" onClick={this.moveTo}
+                                        draggable
+                                />
+                                {/*{this.renderLines()}*/}
+                            </Layer>
+                        </Stage>
                     </div>
-                </div>
-            </div>)
+
+                    <canvas id={'canvas'} />
+                    {<ScreenFetcher socket={this.socket}/>}
+
+                    <Box as="img" src={this.state.dataUrl} alt={'Backend version of the screen'} mt={4}
+                         border="1px solid" borderColor="edge"/>
+                </Box>
+            </Box>)
     }
 
     renderLines(){

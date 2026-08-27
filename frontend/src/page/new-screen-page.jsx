@@ -5,11 +5,29 @@ import {Component} from "react"
 import Strategies from "../components/strategies/strategies"
 import ScreenFetcher from '../components/screen/screen-fetcher'
 import io from 'socket.io-client'
-import './screen-page.scss'
-import {Col, Container, Row} from "reactstrap"
+import {Box, Container, Grid, Heading} from "@chakra-ui/react"
 import HeaderBar from "../components/header/HeaderBar"
 import {colors, images, animations} from "../components/strategies/strategies-data"
 import BACKEND_WS_URL from "../backend-url"
+import './screen-page.scss'
+
+function StrategySection({title, strategies, playHandler, selectedStrategy}) {
+    return (
+        <Box mb={8}>
+            <Heading
+                as="h2"
+                size="sm"
+                textTransform="uppercase"
+                letterSpacing="wider"
+                color="lamp.600"
+                mb={3}
+            >
+                {title}
+            </Heading>
+            <Strategies playHandler={playHandler} strategies={strategies} selectedStrategy={selectedStrategy}/>
+        </Box>
+    )
+}
 
 export default class NewScreenPage extends Component {
     constructor(props, context) {
@@ -75,42 +93,41 @@ export default class NewScreenPage extends Component {
     render() {
 
         const {showScreenOnMobile} = this.state
-        return <div>
-            <HeaderBar 
-                status={this.state.connected} 
+        return <Box minH="100vh" bg="bg">
+            <HeaderBar
+                status={this.state.connected}
                 playHandler={this.playHandler}
                 toggleScreen={this.mobileToggle}
-                screenEnable={this.state.showScreenOnMobile}   
+                screenEnable={this.state.showScreenOnMobile}
             />
 
-            <div className={'small-screen'}>
+            <Box className="small-screen" aria-hidden="true">
                 <ScreenFetcher socket={this.socket} externalStyle/>
-            </div>
+            </Box>
 
-            <Container fluid={true}>
-                <Row>
-                    <Col className={'content mt-4'+`${showScreenOnMobile ? ' d-none d-sm-block' : ''}`}>
-                        <h4>Couleurs :</h4>
-                        <div className={"strategies-container basic-strategies"}>
-                            <Strategies playHandler={this.playHandler} strategies={colors} selectedStrategy={this.state.currentStrategy}/>
-                        </div>
-                        <h4>Animations :</h4>
-                        <div className={"strategies-container basic-strategies"}>
-                            <Strategies playHandler={this.playHandler} strategies={animations} selectedStrategy={this.state.currentStrategy}/>
-                        </div>
-                        <h4>Images :</h4>
-                        <div className={"strategies-container basic-strategies"}>
-                            <Strategies playHandler={this.playHandler} strategies={images} selectedStrategy={this.state.currentStrategy}/>
-                        </div>
-                    </Col>
-                    <Col sm={'auto'} className={`${showScreenOnMobile ? 'd-block' : 'd-none d-sm-block'}`}>
-                        <div className={'screen-container'}>
-                            <ScreenFetcher socket={this.socket}/>
-                        </div>
-                    </Col>
-                </Row>
+            <Container maxW="container.xl" py={6}>
+                <Grid
+                    templateColumns={{base: '1fr', lg: '1fr auto'}}
+                    gap={{base: 6, lg: 10}}
+                    alignItems="start"
+                >
+                    <Box display={{base: showScreenOnMobile ? 'none' : 'block', lg: 'block'}}>
+                        <StrategySection title="Couleurs" strategies={colors} playHandler={this.playHandler} selectedStrategy={this.state.currentStrategy}/>
+                        <StrategySection title="Animations" strategies={animations} playHandler={this.playHandler} selectedStrategy={this.state.currentStrategy}/>
+                        <StrategySection title="Images" strategies={images} playHandler={this.playHandler} selectedStrategy={this.state.currentStrategy}/>
+                    </Box>
+
+                    <Box
+                        className="screen-container"
+                        display={{base: showScreenOnMobile ? 'block' : 'none', lg: 'block'}}
+                        width={{base: '100%', lg: 'fit-content'}}
+                        justifySelf={{lg: 'end'}}
+                    >
+                        <ScreenFetcher socket={this.socket} externalStyle/>
+                    </Box>
+                </Grid>
             </Container>
-        </div>
+        </Box>
     }
 
 }

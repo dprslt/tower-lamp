@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-"dev": "node scripts/with-port.mjs vite",
+    "dev": "node scripts/with-port.mjs vite",
     "dev:log": "node -e \"require('fs').mkdirSync('logs',{recursive:true})\" && node scripts/with-port.mjs vite >> logs/frontend.log 2>&1",
     "build": "vite build",
     "preview": "vite preview",
@@ -12,18 +12,18 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@chakra-ui/react": "^3.36.1",
+    "@emotion/react": "^11.14.0",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^3.5.0",
-    "bootstrap": "^5.3.3",
     "konva": "^9.3.16",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-konva": "^18.2.10",
     "react-router-dom": "^6.30.0",
-    "reactstrap": "^9.2.3",
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
