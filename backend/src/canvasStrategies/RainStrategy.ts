@@ -26,10 +26,10 @@ const PALETTE: RGB[] = [
     [60, 90, 220],
 ]
 
-const BOLT_COLOR: RGB = [225, 215, 255]
+const BOLT_COLOR: RGB = [150, 120, 255]
 
 const FADE_HALF_LIFE_S = 0.08
-const FLASH_DURATION_S = 0.35
+const FLASH_DURATION_S = 0.45
 const RIPPLE_LIFE_S = 0.55
 
 export default class RainStrategy extends AbstractStrategy {
@@ -160,9 +160,10 @@ export default class RainStrategy extends AbstractStrategy {
         if (this.boltX >= 0) {
             for (let y = 0; y < this.height; y++) {
                 const x = Math.max(0, Math.min(this.width - 1, this.boltX + this.boltJitter[y]))
-                this.stamp(x, y, BOLT_COLOR, 1)
-                if (y > 0) {
-                    this.stamp(x, y - 1, BOLT_COLOR, 0.5)
+                const decay = 1 - 0.5 * (y / this.height)
+                this.stamp(x, y, BOLT_COLOR, 0.8 * decay)
+                if (y > 0 && Math.random() < 0.35) {
+                    this.stamp(x, y - 1, BOLT_COLOR, 0.3 * decay)
                 }
             }
         }
@@ -212,7 +213,7 @@ export default class RainStrategy extends AbstractStrategy {
     }
 
     private render(rasterizer: Rasterizer): void {
-        const boost = 1 + this.flash * 1.2
+        const boost = 1 + this.flash * 0.35
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 const cell = this.grid[y * this.width + x]

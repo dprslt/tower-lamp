@@ -48,16 +48,12 @@ export const colors = [
 ]
 
 
-export const fireworks = [
+export const animations = [
     {
         strategyName: 'fireworks',
         name: "Fireworks",
         params: {}
-    }
-]
-
-
-export const rain = [
+    },
     {
         strategyName: 'rain',
         name: "Rainy Day",
