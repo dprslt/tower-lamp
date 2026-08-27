@@ -5,7 +5,7 @@
   "repository": "https://git.dprslt.fr/lights/lamp",
   "version": "1.1.0",
   "scripts": {
-"start": "node scripts/with-port.mjs node ./build/index.js",
+    "start": "node scripts/with-port.mjs node ./build/index.js",
     "dev": "node scripts/with-port.mjs tsx watch src/index.ts",
     "dev:log": "node -e \"require('fs').mkdirSync('logs',{recursive:true})\" && node scripts/with-port.mjs tsx watch src/index.ts >> logs/backend.log 2>&1",
     "preview": "node --import tsx src/preview.ts",
@@ -19,6 +19,7 @@
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "get-pixels": "^3.3.2",
+    "mqtt": "^5.15.2",
     "socket.io": "^4.8.1",
     "ws": "^8.18.0"
   },
