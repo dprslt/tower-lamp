@@ -1,37 +1,15 @@
-import React, {Component} from "react"
-import {hot} from "react-hot-loader"
-import './app.scss'
-import {Route, Switch} from 'react-router-dom'
-import {connect} from 'react-redux'
-import PropTypes from "prop-types"
-import ScreenPage from "../page/screen-page"
-import NewScreenPage from "../page/new-screen-page";
-class App extends Component {
-    constructor (props) {
-        super(props)
-    }
+import { Route, Routes } from 'react-router-dom'
 
-  /*
-  HACK : On passe l'attribut location au switch pour forcer son évaluation lorsque la route change.
-  */
-  render() {
-      return (
+import ScreenPage from '../page/screen-page'
+import NewScreenPage from '../page/new-screen-page'
+
+export default function App() {
+    return (
         <div className="app-component">
-            <div>
-                <Route exact path="/old" component={ScreenPage} />
-                <Route exact path="/" component={NewScreenPage} />
-            </div>
+            <Routes>
+                <Route path="/old" element={<ScreenPage />} />
+                <Route path="/" element={<NewScreenPage />} />
+            </Routes>
         </div>
-      )
-  }
+    )
 }
-
-function mapStateToProps(state) {
-    return {
-    }
-}
-
-App.propTypes = {
-}
-
-export default connect(mapStateToProps,null)(hot(module)(App))

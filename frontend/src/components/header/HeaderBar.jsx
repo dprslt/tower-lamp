@@ -1,5 +1,4 @@
-import React from 'react'
-import {Nav, Navbar, NavbarBrand} from "reactstrap";
+import {Navbar, NavbarBrand} from "reactstrap";
 
 import './header.scss'
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -12,7 +11,6 @@ const offStrategy = {
 }
 
 const Header = (props) => {
-    console.log(props)
     //return <Navbar fixed light className={'header-bar'}>
     return <Navbar light className={'header-bar ' + (props.status ? 'good' : 'bad')}>
 

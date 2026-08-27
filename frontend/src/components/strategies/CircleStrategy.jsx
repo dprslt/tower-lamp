@@ -1,4 +1,3 @@
-import React from 'react'
 import {Image as KonvaImage, Layer, Rect, Stage} from "react-konva";
 import {virtualScreenHeight, virtualScreenWidth} from "./strategies";
 

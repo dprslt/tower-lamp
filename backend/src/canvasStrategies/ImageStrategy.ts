@@ -1,74 +1,71 @@
-import Konva from 'konva-node'
-import Canvas from "canvas"
+import getPixels from 'get-pixels'
 import AbstractStrategy from "./AbstractStrategy"
-import {CanvasScreen} from "../screen/CanvasScreen"
-import {Layer} from "konva/types/Layer"
-import {Rect} from "konva/types/shapes/Rect";
-import {Image} from "konva/types/shapes/Image";
-import {Tween} from "konva/types/Tween";
+import {CanvasScreen, CanvasLayer} from "../screen/CanvasScreen"
+import {DecodedImage} from "../screen/Rasterizer";
+
+
+export function computeSlideOffset(elapsedSeconds: number, duration: number, slideDistance: number): number {
+    if (duration <= 0 || slideDistance <= 0) {
+        return 0
+    }
+    const halfPeriod = duration
+    const phase = (elapsedSeconds % (2 * halfPeriod)) / halfPeriod
+    const t = phase < 1 ? phase : 2 - phase
+    const progress = (1 - Math.cos(Math.PI * t)) / 2
+    return -slideDistance * progress
+}
 
 
 export default class ImageStrategy extends AbstractStrategy {
 
-    private readonly layer: Layer
-    private readonly fill: Image
-    private animation: Tween;
+    private layer: CanvasLayer | null = null
+    private image: DecodedImage | null = null
+    private readonly duration: number
+    private mountTime: number = 0
 
     public constructor(canvasScreen: CanvasScreen, params: any) {
         super(canvasScreen, params)
 
-        this.layer = new Konva.Layer()
+        this.duration = typeof params.duration === 'number' ? params.duration : 10
 
-        const imageObject = new Canvas.Image()
-        imageObject.src = this.params.data
-
-        this.fill = new Konva.Image({
-            x: 0,
-            y: 0,
-            image: imageObject,
-            height: 21 * 20
-        })
-        this.layer.add(this.fill)
-
-        const {data, ...otherParams} = this.params
-
-        this.animation = new Konva.Tween({
-            node: this.fill,
-            x: -(imageObject.width - this.canvasScreen.getCanvasSize().width),
-            easing: Konva.Easings.Linear,
-            duration: 10,
-            onFinish: () => {
-                this.startAnimationReverse()
-            },
-            // On reset is called when the Animation Reverse is over.
-            onReset: () => {
-                this.startAnimation()
-            },
-            ...otherParams
+        getPixels(params.data, (err: any, pixels: any) => {
+            if (err) {
+                console.error('Error while decoding the strategy image')
+                return
+            }
+            this.image = {
+                width: pixels.shape[0],
+                height: pixels.shape[1],
+                data: new Uint8ClampedArray(pixels.data),
+            }
         })
 
+        this.layer = {
+            draw: (rasterizer) => {
+                if (!this.image) {
+                    return
+                }
+                const size = this.canvasScreen.getCanvasSize()
+                const elapsedSeconds = (Date.now() - this.mountTime) / 1000
+                const slideDistance = this.image.width - size.width
+                const offset = computeSlideOffset(elapsedSeconds, this.duration, slideDistance)
+                rasterizer.drawImage(this.image, offset, 0, this.image.width, size.height)
+            }
+        }
     }
 
     mount() {
+        this.mountTime = Date.now()
         this.canvasScreen.hidePixels()
-        this.canvasScreen.registerLayer(this.layer)
-        this.startAnimation()
+        if (this.layer) {
+            this.canvasScreen.registerLayer(this.layer)
+        }
     }
 
     unmount() {
-        this.layer.remove()
-        this.layer.destroy()
-        this.animation.destroy()
-    }
-
-    /* Specific code */
-
-    startAnimation() {
-        this.animation.play()
-    }
-
-
-    startAnimationReverse() {
-        this.animation.reverse()
+        if (this.layer) {
+            this.canvasScreen.unregisterLayer(this.layer)
+            this.layer = null
+        }
     }
 }

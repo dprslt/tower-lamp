@@ -1,73 +1,35 @@
 # AGENTS.md
 
-## Project overview
-
-Tower lamp: a physical LED tower (8 columns x 21 rows = 168 LEDs) driven by a
-FadeCandy board, controlled through a web UI.
+Notes for agents working on this repo.
 
 > When you hit a problem, paper-trail it in `doc/llm-paper-trail/` (template in its README).
 
 > Avoid full-white (and other high-brightness) tests on the tower: 168 LEDs at full white
-> draw a lot of power and the thermal dissipation is not optimal yet — prefer red for
+> draw a lot of power and the thermal dissipation is not optimal yet — prefer **red** for
 > bring-up checks.
 
-- **Hardware**: FadeCandy (fcserver) on a Raspberry Pi, LEDs wired to it.
-- **Backend** (`backend/`): Node.js + TypeScript, Express + Socket.IO. Renders
-  strategies (animations) on an offscreen canvas, samples pixels, sends them to
-  the FadeCandy over WebSocket and to browsers over Socket.IO.
-- **Frontend** (`frontend/`): React 16 + Redux + webpack. Displays a live
-  pixel preview and lets you pick/configure strategies.
-- **FadeCandy** (`fadecandy/`): fcserver config + install scripts for the Pi.
-- **Deploy**: native systemd on the Pi (no Docker) — see `scripts/pi/` and
-  `.opencode/skills/deploy-tower/`. Docker was dropped: docker-ce has no armv6
-  builds anymore and the Pi Zero W can't run modern Docker.
+## Layout
+
+- `backend/` — Node + TypeScript server (tsc build): Socket.IO v4 server on port 30008, renders the 8x21 lamp screen with a pure-TS rasterizer (no native deps) and pushes frames to FadeCandy over WebSocket.
+- `frontend/` — Vite + React 18 SPA (migrated from webpack 4 / React 16 / node-sass in 2026).
+- `fadecandy/` — FadeCandy controller binaries/config for the Raspberry Pi.
+- `scripts/pi/` — deployment toolbox for the tower Pi (see the `deploy-tower` skill in `.opencode/skills/`).
+- **Deploy**: native systemd on the Pi (`lamp-fc-server`, `lamp-backend`, nginx) — no Docker (docker-ce has no armv6 builds anymore and the Pi Zero W can't run modern Docker).
 
 ## Branching / remote
 
 - Default branch is `main`. Remote: `https://github.com/dprslt/tower-lamp`.
 
-## Commands
+## Gotchas
 
-### Backend (`backend/`)
-
-- `npm run start-dev` — run from TypeScript sources via Babel register (dev)
-- `npm run build` — compile TS/TSX to `build/` via Babel + tsc declarations
-- `npm run check-types` — typecheck only (`tsc`)
-
-### Frontend (`frontend/`)
-
-- `npm start` — webpack-dev-server (dev, port 3001)
-- `npm run build` — production build to `dist/`
-- `npm run lint` — `eslint src`
-
-There is no test suite. Do not invent one without asking.
-
-## Architecture
-
-### Backend flow
-
-`backend/src/index.ts` is the entry point:
-
-1. Creates an Express + Socket.IO server on port 30008.
-2. Connects to the FadeCandy via `FadeCandyConnection` (WebSocket, auto-reconnect
-   with 1s retry). URL comes from `FADE_CANDY_URL` env var.
-3. Builds a `CanvasScreen` (8x21) and a `CanvasStrategyFactory`.
-4. Socket.IO events: `get-strategies` (list), `select-strategy` (name + params).
-   The current strategy is unmounted before mounting the new one.
-
-Strategies (`backend/src/canvasStrategies/`, registered in
-`CanvasStrategyFactory.ts`): `color`, `off`, `image`. All extend
-`AbstractStrategy` and draw onto the canvas; `CanvasScreen` samples the canvas
-and pushes pixels to both the FadeCandy and browser clients.
-
-### Frontend structure
-
-- `src/components/screen/` — live pixel grid; `local-screen-fetcher.jsx` reads
-  the FadeCandy feed directly, `screen-fetcher.jsx` goes through the backend.
-- `src/components/strategies/` — UI to pick a strategy and its params.
-- `src/store/` — Redux store, actions, reducers.
-- `src/page/` — `screen-page.jsx` (main view), `new-screen-page.jsx`.
-- `src/StatePersister.js` — persists state (localStorage).
+- **Socket.IO protocol is v4 on both sides** (migrated from v2 in 2026 together with the frontend). Events: `get-strategies` / `strategies` / `select-strategy` (client→server), `screen-update` (flat RGBA frame, 4-byte prefix + 8*21*3), `screen-image` (server→client, currently never emitted). The backend renders with a software rasterizer (`Rasterizer.ts`) — do NOT reintroduce node-canvas/konva-node (they don't build on modern Node/Windows, and node-canvas is not installable on the Pi's armv6 Node).
+- **Frame pacing**: the backend refreshes at 40fps via a drift-free scheduler (wall-clock aligned setTimeout chain). Do not switch back to `setInterval` — coarse OS timer granularity (Windows) drops the cadence to ~32fps.
+- **FadeCandy interpolation** is enabled (`fadecandy/config.json`, `"interpolate": true`) — it smooths transitions between backend frames and prevents flicker. Keep it on.
+- **No hardcoded LAN IPs or hostnames.** The backend URL is `VITE_BACKEND_WS_URL` (optional; see `frontend/.env.example`). When unset the frontend derives it from the page's own hostname (`<location.hostname>:30008`), which works in dev and on the Pi alike. The backend's `FADE_CANDY_URL` is a runtime env var (systemd: `ws://127.0.0.1:7890` on the Pi; dev default `ws://lamp.local:7890` — mDNS).
+- **No test suite historically; smoke tests live in `frontend/src/test/`** (Vitest + Testing Library, socket mocked) and `backend/src/test/` (node:test, pure-TS renderer). Run `npm run test`, `npm run lint`, `npm run build` from `frontend/` and `backend/`.
+- **Frontend is plain JSX** (no TypeScript in `src/`) — esbuild/Vite handles JSX natively, no Babel presets needed. The backend is TypeScript built with plain `tsc` (no Babel).
+- The tower Pi is a **Pi Zero W (armv6l)** running Node 22.23.2 from unofficial-builds — do not "upgrade" it, and never build native deps for it.
+- Backend license is MIT, frontend is ISC (as declared in their package.json).
 
 ## Local development against the tower
 
@@ -83,33 +45,34 @@ dev machine and it drives the FadeCandy that lives on the lamp over the LAN
 
   ```bash
   cd backend
-  npm run start-dev        # FADE_CANDY_URL defaults to ws://lamp.local:7890
+  npm run dev        # FADE_CANDY_URL defaults to ws://lamp.local:7890
   ```
 
   Override with `FADE_CANDY_URL` if needed. Expect the log line "Connected to
   the fadeCandy".
-- The frontend dev server (`npm start`, port 3001) still hardcodes a stale
-  backend URL (`192.168.1.35:30008` in `webpack.dev.config.js`); for a full
-  local stack point `BACKEND_WS_URL` at the locally-run backend.
+- The frontend dev server (`npm run dev`, port 7085) connects to
+  `localhost:30008` by default (same machine); set `VITE_BACKEND_WS_URL` to
+  point elsewhere (see `frontend/.env.example`).
 - Reminder: the tower is real hardware — prefer red over full-white test
   patterns, and be aware that mounting a strategy locally lights the actual
   LEDs.
 
-## Gotchas / conventions
+## Commands
 
-- **Old dependency stack**: React 16, webpack 4, node-sass 4, TypeScript 3.7,
-  Babel 7. Do not upgrade these casually; the toolchain is fragile (e.g.
-  `node-sass` needs a matching Node version).
-- **LAN addressing**: use `lamp.local` (mDNS/avahi, see above) rather than
-  hardcoding IPs. The backend defaults to `ws://lamp.local:7890` and is
-  overridable via `FADE_CANDY_URL`. A stale IP remains in
-  `frontend/webpack.dev.config.js` (`192.168.1.35:30008`).
-- `backend/src/index.ts` contains large commented-out legacy socket handlers —
-  keep them unless explicitly asked to remove.
-- `.gitignore` lists `.gitignore` itself (harmless quirk). `node_modules/`,
-  `build/`, `.idea/` are ignored.
-- `backend/yarn-error.log` is committed junk (personal machine paths) — do not
-  add new generated logs; prefer removing it if you touch the area.
-- Backend license is MIT, frontend is ISC (as declared in their package.json).
-- Logging uses `console` in the backend (there is a `log4js` dependency but it
-  is not wired up).
+```bash
+# backend (port 30008)
+cd backend
+npm install
+npm run dev         # tsx watch
+npm run test        # node --test
+npm run lint        # eslint src
+npm run build       # tsc -> build/
+
+# frontend (port 7085)
+cd frontend
+npm install
+npm run dev         # http://localhost:7085
+npm run test        # vitest run
+npm run lint        # eslint src
+npm run build       # vite build -> dist/
+```
