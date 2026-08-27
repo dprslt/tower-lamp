@@ -84,6 +84,11 @@ export default function CircleStrategy(props) {
         props.playHandler(props.strategy)
     }
 
+    const selected = props.selectedStrategy !== null
+        && props.selectedStrategy !== undefined
+        && props.selectedStrategy.name === props.strategy.name
+        && JSON.stringify(props.selectedStrategy.params) === JSON.stringify(props.strategy.params)
+
     let stratComponent = null;
     switch (props.strategy.name) {
         case 'color':
@@ -100,7 +105,7 @@ export default function CircleStrategy(props) {
             break
     }
 
-    return <div className={'circle-strategy'} onClick={actionHandler}>
+    return <div className={'circle-strategy' + (selected ? ' selected' : '')} onClick={actionHandler}>
         {stratComponent}
     </div>
 

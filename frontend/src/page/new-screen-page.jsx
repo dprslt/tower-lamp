@@ -25,6 +25,7 @@ export default class NewScreenPage extends Component {
             connected: false,
             socket: null,
             showScreenOnMobile: false,
+            currentStrategy: null,
         }
 
         this.socket = null
@@ -44,6 +45,10 @@ export default class NewScreenPage extends Component {
 
         this.socket.on('screen-image', (dataUrl) => {
             this.setState({...this.state, dataUrl})
+        })
+
+        this.socket.on('strategy-selected', (strategy) => {
+            this.setState({...this.state, currentStrategy: strategy})
         })
 
         this.socket.on('disconnect', () => {
@@ -87,15 +92,15 @@ export default class NewScreenPage extends Component {
                     <Col className={'content mt-4'+`${showScreenOnMobile ? ' d-none d-sm-block' : ''}`}>
                         <h4>Couleurs :</h4>
                         <div className={"strategies-container basic-strategies"}>
-                            <Strategies playHandler={this.playHandler} strategies={colors}/>
+                            <Strategies playHandler={this.playHandler} strategies={colors} selectedStrategy={this.state.currentStrategy}/>
                         </div>
                         <h4>Animations :</h4>
                         <div className={"strategies-container basic-strategies"}>
-                            <Strategies playHandler={this.playHandler} strategies={animations}/>
+                            <Strategies playHandler={this.playHandler} strategies={animations} selectedStrategy={this.state.currentStrategy}/>
                         </div>
                         <h4>Images :</h4>
                         <div className={"strategies-container basic-strategies"}>
-                            <Strategies playHandler={this.playHandler} strategies={images}/>
+                            <Strategies playHandler={this.playHandler} strategies={images} selectedStrategy={this.state.currentStrategy}/>
                         </div>
                     </Col>
                     <Col sm={'auto'} className={`${showScreenOnMobile ? 'd-block' : 'd-none d-sm-block'}`}>

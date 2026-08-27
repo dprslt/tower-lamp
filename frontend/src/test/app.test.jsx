@@ -135,6 +135,24 @@ describe('app smoke test', () => {
         )
     })
 
+    it('highlights the currently selected strategy', () => {
+        const handlers = registerHandlers()
+
+        render(
+            <MemoryRouter initialEntries={['/']}>
+                <App />
+            </MemoryRouter>
+        )
+
+        fireHandlers(handlers, 'strategy-selected', {name: 'color', params: {fill: '#ffb88f'}})
+        const selected = document.querySelectorAll('.circle-strategy.selected')
+        expect(selected.length).toBe(1)
+        expect(selected[0].textContent).toBeDefined()
+
+        fireHandlers(handlers, 'strategy-selected', {name: 'off', params: {}})
+        expect(document.querySelectorAll('.circle-strategy.selected').length).toBe(0)
+    })
+
     it('renders the legacy /old debug page', () => {
         registerHandlers()
 

@@ -36,8 +36,13 @@ const screen = new CanvasScreen(8, 21, io, fadeCandyConnection, 20)
 const factory = new CanvasStrategyFactory(screen)
 
 let animation : AbstractStrategy | null = null
+let currentStrategy : { name: string, params: any } | null = null
 
 io.on('connection', (socket) => {
+    if (currentStrategy) {
+        socket.emit('strategy-selected', currentStrategy)
+    }
+
     socket.on('get-strategies', function () {
         socket.emit('strategies', factory.getTemplates())
     })
@@ -52,6 +57,8 @@ io.on('connection', (socket) => {
             animation = factory.getStrategyFromTemplate(data.name, data.params)
             if(animation){
                 animation.mount()
+                currentStrategy = { name: data.name, params: data.params }
+                io.emit('strategy-selected', currentStrategy)
             } else {
                 console.error("Not strategy found for name "+ data.name)
             }
@@ -67,6 +74,9 @@ io.on('connection', (socket) => {
                 animation.unmount()
             }
 
+            currentStrategy = null
+            io.emit('strategy-selected', currentStrategy)
+
             screen.erase()
             screen.injectFlatData(data)
             screen.refresh()
@@ -79,11 +89,13 @@ io.on('connection', (socket) => {
 
 
 // Running the default animation
-animation = new ColorStrategy(screen, {
+const defaultParams = {
     fillLinearGradientStartPoint: { x: screen.getCanvasSize().width, y: screen.getCanvasSize().height },
     fillLinearGradientEndPoint: { x: 0, y: 0 },
     fillLinearGradientColorStops: [0, 'red', 1, 'gold'],
-})
+}
+animation = new ColorStrategy(screen, defaultParams)
 animation.mount()
+currentStrategy = { name: 'color', params: defaultParams }
 
 screen.start()

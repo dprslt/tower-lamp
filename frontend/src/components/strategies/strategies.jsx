@@ -16,7 +16,7 @@ export default class Strategies extends React.Component {
         return (
             <div className={""}>
                 <div className={"strategies"}>
-                    {this.props.strategies && this.props.strategies.map(s => <CircleStrategy strategy={ {name:s.strategyName, params:s.params} } playHandler={this.props.playHandler}  key={s.name}/>)}
+                    {this.props.strategies && this.props.strategies.map(s => <CircleStrategy strategy={ {name:s.strategyName, params:s.params} } playHandler={this.props.playHandler} selectedStrategy={this.props.selectedStrategy} key={s.name}/>)}
                 </div>
             </div>
 

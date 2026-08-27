@@ -30,5 +30,10 @@
     border-color: rgba(228, 228, 228, 0.96);
     box-shadow: -3px -3px 5px rgba(150, 150, 150, 0.4), 0px 0px 10px rgba(150, 150, 150, 0.8);
   }
+
+  &.selected {
+    border-color: gold;
+    box-shadow: -3px -3px 5px rgba(150, 150, 150, 0.2), 0px 0px 10px rgba(150, 150, 150, 0.6), 0 0 14px 3px rgba(255, 215, 0, 0.9), inset 0 0 6px rgba(255, 215, 0, 0.6);
+  }
 }
 
