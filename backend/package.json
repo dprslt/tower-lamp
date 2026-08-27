@@ -5,8 +5,9 @@
   "repository": "https://git.dprslt.fr/lights/lamp",
   "version": "1.1.0",
   "scripts": {
-    "start": "node scripts/with-port.mjs node ./build/index.js",
+"start": "node scripts/with-port.mjs node ./build/index.js",
     "dev": "node scripts/with-port.mjs tsx watch src/index.ts",
+    "dev:log": "node -e \"require('fs').mkdirSync('logs',{recursive:true})\" && node scripts/with-port.mjs tsx watch src/index.ts >> logs/backend.log 2>&1",
     "build": "tsc",
     "check-types": "tsc --noEmit",
     "test": "node --import tsx --test \"src/test/*.test.ts\"",
