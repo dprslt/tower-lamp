@@ -109,14 +109,31 @@ test('ColorStrategy linear gradient varies across the screen', async () => {
     assert.ok(Math.abs(rightColumn[0] - 238) <= 3, `right column averages the gradient end, got ${rightColumn}`)
 })
 
-test('computeSlideOffset follows a triangle wave', () => {
+test('computeSlideOffset follows a smooth ping-pong', () => {
     assert.equal(Math.abs(computeSlideOffset(0, 10, 100)), 0)
-    assert.equal(computeSlideOffset(5, 10, 100), -50)
-    assert.equal(computeSlideOffset(10, 10, 100), -100)
-    assert.equal(computeSlideOffset(15, 10, 100), -50)
+    assert.ok(Math.abs(computeSlideOffset(5, 10, 100) + 50) < 1e-6)
+    assert.ok(Math.abs(computeSlideOffset(10, 10, 100) + 100) < 1e-6)
+    assert.ok(Math.abs(computeSlideOffset(15, 10, 100) + 50) < 1e-6)
     assert.equal(Math.abs(computeSlideOffset(20, 10, 100)), 0)
     assert.equal(Math.abs(computeSlideOffset(0, 10, 0)), 0)
     assert.equal(Math.abs(computeSlideOffset(0, 10, -20)), 0)
+
+    const beforeTurn = computeSlideOffset(9.9, 10, 100)
+    const afterTurn = computeSlideOffset(10.1, 10, 100)
+    assert.ok(Math.abs(beforeTurn - afterTurn) < 0.1, 'velocity approaches zero at the reversal')
+
+    let previous = computeSlideOffset(0, 10, 100)
+    for (let t = 0.2; t <= 10; t += 0.2) {
+        const current = computeSlideOffset(t, 10, 100)
+        assert.ok(current <= previous + 1e-9, `moves forward between 0 and 10s (t=${t})`)
+        previous = current
+    }
+    previous = computeSlideOffset(10, 10, 100)
+    for (let t = 10.2; t <= 20; t += 0.2) {
+        const current = computeSlideOffset(t, 10, 100)
+        assert.ok(current >= previous - 1e-9, `moves backward between 10 and 20s (t=${t})`)
+        previous = current
+    }
 })
 
 test('ImageStrategy renders the decoded image then black', async () => {

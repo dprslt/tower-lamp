@@ -10,7 +10,8 @@ export function computeSlideOffset(elapsedSeconds: number, duration: number, sli
     }
     const halfPeriod = duration
     const phase = (elapsedSeconds % (2 * halfPeriod)) / halfPeriod
-    const progress = phase < 1 ? phase : 2 - phase
+    const t = phase < 1 ? phase : 2 - phase
+    const progress = (1 - Math.cos(Math.PI * t)) / 2
     return -slideDistance * progress
 }
 
