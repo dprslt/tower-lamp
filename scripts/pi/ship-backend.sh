@@ -1,12 +1,11 @@
 #!/bin/bash
-# Build the migrated backend on this machine, ship it to the Pi, install prod deps,
-# restart the service. Usage: wsl -e bash scripts/pi/deploy-backend.sh [backend-dir]
+# Ship a pre-built backend to the Pi: copy build/ + package.json, install prod deps,
+# restart the service. Build locally first (npm run build in backend/).
+# Usage: wsl -e bash scripts/pi/ship-backend.sh [backend-dir]
 set -e
 source "$(dirname "$0")/lib.sh"
 
 BE="${1:-backend}"
-echo "== building backend in $BE"
-(cd "$BE" && npm ci --silent && npm run build --silent)
 echo "== shipping build + package.json"
 pi_scp -r "$BE/build" /tmp/ >/dev/null
 pi_scp "$BE/package.json" /tmp/ >/dev/null
