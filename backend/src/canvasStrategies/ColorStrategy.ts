@@ -1,36 +1,56 @@
 import AbstractStrategy from "./AbstractStrategy";
-import Konva from 'konva-node'
-import {CanvasScreen} from "../screen/CanvasScreen";
-import {Layer} from "konva/types/Layer";
-import {Rect} from "konva/types/shapes/Rect";
+import {CanvasScreen, CanvasLayer} from "../screen/CanvasScreen";
+import {FillSpec, LinearGradient, RGB} from "../screen/Rasterizer";
+
+
+function fillSpecFromParams(params: any): FillSpec {
+    if (typeof params.fill === 'string') {
+        return params.fill
+    }
+    if (params.fillLinearGradientStartPoint && params.fillLinearGradientEndPoint) {
+        const gradient: LinearGradient = {
+            startPoint: params.fillLinearGradientStartPoint,
+            endPoint: params.fillLinearGradientEndPoint,
+            colorStops: params.fillLinearGradientColorStops || [0, '#000000', 1, '#000000'],
+        }
+        return gradient
+    }
+    if (typeof params.fill === 'undefined') {
+        return [0, 0, 0]
+    }
+    return params.fill as RGB
+}
 
 
 export default class ColorStrategy extends AbstractStrategy{
 
-    private readonly layer: Layer
-    private readonly fill: Rect
+    private layer: CanvasLayer | null = null
 
     public constructor(canvasScreen: CanvasScreen, params: any) {
         super(canvasScreen, params)
 
-        this.layer = new Konva.Layer()
-        this.fill = new Konva.Rect({
-            x: 0,
-            y:0,
-            ...this.canvasScreen.getCanvasSize(),
-            ...params
-        })
-        this.layer.add(this.fill)
+        const fill = fillSpecFromParams(params)
+
+        this.layer = {
+            draw: (rasterizer) => {
+                const size = this.canvasScreen.getCanvasSize()
+                rasterizer.fillRect(0, 0, size.width, size.height, fill)
+            }
+        }
     }
 
     mount(){
         this.canvasScreen.hidePixels()
-        this.canvasScreen.registerLayer(this.layer)
+        if (this.layer) {
+            this.canvasScreen.registerLayer(this.layer)
+        }
     }
 
     unmount(){
-        this.layer.remove()
-        this.layer.destroy()
+        if (this.layer) {
+            this.canvasScreen.unregisterLayer(this.layer)
+            this.layer = null
+        }
     }
 
 

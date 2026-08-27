@@ -1,6 +1,6 @@
 # frontend
 
-Vite + React 18 SPA. Socket.IO v2 client (socket.io-client 2.5.0 — do NOT upgrade to v4, the backend runs socket.io v2).
+Vite + React 18 SPA talking to the backend over Socket.IO v4 (both sides migrated in 2026).
 
 ## Local dev
 

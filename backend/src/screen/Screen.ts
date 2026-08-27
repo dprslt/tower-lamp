@@ -1,22 +1,27 @@
 import {getRandomInt} from "../Utils"
 import {Pos, RGBColor} from "../types";
-import SocketIO from "socket.io";
+import {Server} from "socket.io";
 import WebSocket from "ws"
+import FadeCandyConnection from "../FadeCandyConnection";
 
 
 export abstract class Screen {
     protected readonly width : number;
     protected readonly height: number;
 
-    socketFadeCandy: WebSocket;
-    socketFrontend: SocketIO.Server;
+    private readonly fadeCandy: FadeCandyConnection;
+    socketFrontend: Server;
 
 
-    constructor(width: number, height: number, socketFrontend: SocketIO.Server, socketFadeCandy: WebSocket) {
+    constructor(width: number, height: number, socketFrontend: Server, fadeCandy: FadeCandyConnection) {
         this.width = width
         this.height = height
         this.socketFrontend = socketFrontend
-        this.socketFadeCandy = socketFadeCandy
+        this.fadeCandy = fadeCandy
+    }
+
+    get socketFadeCandy(): WebSocket {
+        return this.fadeCandy.socket
     }
 
     abstract erase() : void;
@@ -46,7 +51,7 @@ export abstract class Screen {
      * Convert the 3D local matrix to a linear array containing all the pixel info to send to the FadeCandy.
      * @return {Promise<number[]>}
      */
-    abstract async flat() : Promise<number[]>
+    abstract flat() : Promise<number[]>
 
     /**
      * Convert the local screen to the fadecandy format.

@@ -29,7 +29,7 @@ export default class CanvasStrategyFactory {
     }
 
     getStrategyFromTemplate(strategyId: string, params: any) {
-        let strategy = templates[strategyId]
+        const strategy = templates[strategyId]
         if (!strategy) {
             return null
         } else {
