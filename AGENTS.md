@@ -18,7 +18,9 @@ FadeCandy board, controlled through a web UI.
 - **Frontend** (`frontend/`): React 16 + Redux + webpack. Displays a live
   pixel preview and lets you pick/configure strategies.
 - **FadeCandy** (`fadecandy/`): fcserver config + install scripts for the Pi.
-- **Deploy**: `docker-compose.yml` — backend on port 30008, frontend on port 80.
+- **Deploy**: native systemd on the Pi (no Docker) — see `scripts/pi/` and
+  `.opencode/skills/deploy-tower/`. Docker was dropped: docker-ce has no armv6
+  builds anymore and the Pi Zero W can't run modern Docker.
 
 ## Branching / remote
 
@@ -100,9 +102,8 @@ dev machine and it drives the FadeCandy that lives on the lamp over the LAN
   `node-sass` needs a matching Node version).
 - **LAN addressing**: use `lamp.local` (mDNS/avahi, see above) rather than
   hardcoding IPs. The backend defaults to `ws://lamp.local:7890` and is
-  overridable via `FADE_CANDY_URL`. Stale IPs remain in the legacy
-  `docker-compose.yml` (`192.168.1.71:7890`) and `frontend/webpack.dev.config.js`
-  (`192.168.1.35:30008`).
+  overridable via `FADE_CANDY_URL`. A stale IP remains in
+  `frontend/webpack.dev.config.js` (`192.168.1.35:30008`).
 - `backend/src/index.ts` contains large commented-out legacy socket handlers —
   keep them unless explicitly asked to remove.
 - `.gitignore` lists `.gitignore` itself (harmless quirk). `node_modules/`,

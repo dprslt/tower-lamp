@@ -37,8 +37,8 @@ drives one 21-LED column.
 
 ## Deployment
 
-**Native systemd — no Docker** (docker-ce dropped armv6, and the repo's old
-`docker-compose.yml` is legacy). Three services:
+**Native systemd — no Docker** (docker-ce dropped armv6 builds, which is why the
+Docker stack was retired). Three services:
 
 | Service | Runs | Port |
 |---|---|---|
