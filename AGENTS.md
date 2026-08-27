@@ -5,6 +5,23 @@
 Tower lamp: a physical LED tower (8 columns x 21 rows = 168 LEDs) driven by a
 FadeCandy board, controlled through a web UI.
 
+**Physical shape**: the tower is **round, not flat** — a cylindrical column
+**~17cm diameter, ~52cm total height**, capped with round wooden discs (a
+round "table" top, a mid-joint disc, and a round base). The **LED strip
+section itself spans ~37cm** of that height (the rest is the wooden top cap
+and base/joint, which have no LEDs). Think a wooden spool/pillar with a lit
+section in the middle-to-top, not a rectangular panel. The "8 columns" are 8
+LED strips mounted **vertically around the circumference** of the cylinder
+(~6.7cm apart at that diameter, roughly evenly spaced around the circle),
+each with 21 LEDs running top to bottom over the ~37cm lit section. The
+backend's `CanvasScreen`/`Rasterizer` treats this as an 8x21 2D raster purely
+as a rendering convenience (column index = strip position around the circle,
+row index = height within the ~37cm lit section) — it does **not** mean the
+lamp is a flat matrix/screen. Strategies that assume neighboring columns are
+visually adjacent on a flat plane (e.g. "left edge" vs "right edge") are
+wrong: column 0 and column 7 are physically next to each other too, since
+the columns wrap around the cylinder.
+
 > When you hit a problem, paper-trail it in `doc/llm-paper-trail/` (template in its README).
 
 > Avoid full-white (and other high-brightness) tests on the tower: 168 LEDs at full white
@@ -65,6 +82,9 @@ the `lamp-preview` skill for the full workflow.
 2. Connects to the FadeCandy via `FadeCandyConnection` (WebSocket, auto-reconnect
    with 1s retry). URL comes from `FADE_CANDY_URL` env var.
 3. Builds a `CanvasScreen` (8x21) and a `CanvasStrategyFactory`.
+   (8x21 is a rasterizer convenience for a *cylindrical* LED arrangement,
+   ~17cm diameter x ~52cm tall — see "Physical shape" above — column
+   indices wrap around, they're not a flat left-to-right screen.)
 4. Socket.IO events: `get-strategies` (list), `select-strategy` (name + params).
    The current strategy is unmounted before mounting the new one.
 
