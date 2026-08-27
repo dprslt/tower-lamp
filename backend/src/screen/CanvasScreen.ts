@@ -11,7 +11,7 @@ export interface CanvasLayer {
 
 export class CanvasScreen extends Screen {
 
-    private readonly zoomFactor: number;
+    readonly zoomFactor: number;
 
     private readonly rasterizer: Rasterizer
     private cellMatrix: RGBColor[][]
@@ -40,6 +40,14 @@ export class CanvasScreen extends Screen {
             width: this.width * this.zoomFactor,
             height: this.height * this.zoomFactor
         }
+    }
+
+    get screenWidth(): number {
+        return this.width
+    }
+
+    get screenHeight(): number {
+        return this.height
     }
 
     erase() {
