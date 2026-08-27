@@ -374,3 +374,41 @@ read ARP from the Windows host (`arp -a`), not from WSL.
 For this repo's Pi work, keep reusing the temp script pattern; never inline heredocs in
 PowerShell. A future agent could add a `scripts/pi/` helper folder to the repo with the
 deploy scripts (currently scattered in the temp dir).
+
+---
+
+### Problem: toolbox script bugs found at first reuse (pi_scp -r, pi_sudo chains)
+
+- **Date:** 2026-08-27
+- **Component:** tooling
+- **Status:** resolved
+
+**Symptom**
+While a second agent (frontend migration worktree) reused `scripts/pi/`, two bugs
+surfaced: `pi_scp -r` didn't recurse (the `-r` was consumed as the source argument), and
+`pi_sudo` only elevated the first command of a `&&` chain — the rest ran as the `pi`
+user and hit permission denied.
+
+**Diagnosis trail**
+- `pi_scp() { scp "${opts}" "$1" "$PI_USER@$PI_HOST:${2:-/tmp}"; }` — flags land in `$1`,
+  the real source in `$2`, and the destination is dropped.
+- `pi_sudo() { pi_ssh "echo '$pw' | sudo -S -p '' $1"; }` — only the first token of `$1`
+  is on the sudo command line; `&&` continuations execute outside sudo.
+
+**Root cause**
+The helpers were written for the exact call shapes used during the session and not
+generalized for flags or chained commands.
+
+**Fix applied**
+- `pi_scp`: hoist leading `-*` flags into an array, remaining args = source + destination.
+- `pi_sudo`: pipe `password line + script` to `ssh ... sudo -S -k -p '' bash -s` — the
+  whole command runs in a root bash regardless of `&&`/quoting; `-k` forces sudo to
+  consume the password line even when credentials are cached (else the password leaks
+  into `bash -s` as a "command not found"). Verified live: root-only file write chain,
+  recursive `send.sh -r`.
+- Note: scp.exe (Windows) cannot read `/mnt/c` absolute paths from WSL — deploy scripts
+  pass repo-relative paths, which is the supported form.
+
+**Prevention / follow-up**
+Test helpers with flags and chains after editing (see `verify.sh`); keep paths passed
+to `send.sh`/`deploy-*.sh` repo-relative.

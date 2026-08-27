@@ -25,8 +25,14 @@ PI_SSH_OPTS=(-i "$PI_KEY" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=
 # ssh to the Pi as the pi user
 pi_ssh() { "${PI_SSH_BIN:-ssh}" "${PI_SSH_OPTS[@]}" "$PI_USER@$PI_HOST" "$@"; }
 
-# copy local file/dir to the Pi (default /tmp)
-pi_scp() { "${PI_SCP_BIN:-scp}" "${PI_SSH_OPTS[@]}" "$1" "$PI_USER@$PI_HOST:${2:-/tmp}"; }
+# copy local file/dir to the Pi (default /tmp). Flags (-r, ...) are passed through.
+pi_scp() {
+  local flags=()
+  while [[ "$1" == -* ]]; do flags+=("$1"); shift; done
+  local src="$1"; shift
+  local dest="${1:-/tmp}"
+  "${PI_SCP_BIN:-scp}" "${PI_SSH_OPTS[@]}" "${flags[@]}" "$src" "$PI_USER@$PI_HOST:$dest"
+}
 
 # the pi sudo password, cached locally (see setup.sh) — never hardcoded
 pi_password() {
@@ -37,9 +43,10 @@ pi_password() {
   cat "$PI_PW_FILE"
 }
 
-# run a command as root on the Pi (pass a single-quoted remote command string)
+# run a command (or && chain) as root on the Pi. The whole script is piped to a
+# root bash, so quoting inside $1 is irrelevant — only sudo sees the password line.
 pi_sudo() {
   local pw
   pw=$(pi_password) || return 1
-  pi_ssh "echo '$pw' | sudo -S -p '' $1"
+  { echo "$pw"; printf '%s\n' "$1"; } | "${PI_SSH_BIN:-ssh}" "${PI_SSH_OPTS[@]}" "$PI_USER@$PI_HOST" "sudo -S -k -p '' bash -s"
 }
