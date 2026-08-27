@@ -83,6 +83,11 @@ hardened — do not remove the sandbox:
 - Verify attach: `journalctl -u lamp-fc-server | grep attached` →
   `USB device Fadecandy (Serial# XNZHZFTZDFIVGPQX, Version 1.07) attached.`
 
+**Reinstall / first install**: run `fadecandy/install.sh` on the Pi (root) from a
+directory containing `fcserver-rpi` + `config.json` — it is idempotent and does
+everything above (user, udev, hardened unit, restart). After a card re-flash this
+is the way back to a working FadeCandy.
+
 ## Verification checklist
 
 1. `systemctl is-active lamp-fc-server lamp-backend nginx ufw unattended-upgrades`
@@ -124,5 +129,8 @@ NTFS-mounted keys look 0777 to WSL's ssh.
 - PowerShell/Windows: write shell logic to script files and scp them; never
   inline heredocs in PowerShell (they get mangled). Use `curl.exe`, not `curl`.
   WSL is NAT'd — read the LAN via the Windows host `arp -a`.
+- **CRLF**: repo blobs are LF (`.gitattributes`), but a Windows checkout may still
+  show CRLF in the working tree. When scp'ing `.sh` files to the Pi, strip CR:
+  `sed -i 's/\r$//' <files>` after the copy (or the Pi's bash errors on `$'\r'`).
 - sudo over SSH needs `-S` with the password read from `/root/pi-password.txt`.
 - If you solve a new problem, paper-trail it (template in `doc/llm-paper-trail/`).
