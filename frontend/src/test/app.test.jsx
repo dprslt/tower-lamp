@@ -97,19 +97,24 @@ describe('app smoke test', () => {
         expect(canvases[0].height).toBe(21 * 25)
 
         const stubs = window.__screenCanvasStubs.slice(-2)
-        expect(stubs[0].calls.length).toBe(8 * 21)
-        expect(stubs[0].calls[0].fillStyle).toBe('rgb(0,0,0)')
+        expect(stubs[1].calls.length).toBe(1 + 8 * 21)
+        expect(stubs[1].calls[0]).toMatchObject({x: 0, y: 0, w: 8 * 25, h: 21 * 25, fillStyle: 'black'})
 
         fireHandlers(handlers, 'connect')
         expect(document.querySelector('.header-bar').className).toContain('good')
 
         fireHandlers(handlers, 'screen-update', buildScreenFrame())
         const redraws = window.__screenCanvasStubs.slice(-2)
-        const lit = redraws[0].calls.filter((call) => call.fillStyle === 'rgb(120,200,60)')
+        const visible = redraws[0]
+        const offscreen = redraws[1]
+        expect(offscreen.calls.length).toBe(1 + 8 * 21)
+        expect(offscreen.calls[0]).toMatchObject({x: 0, y: 0, w: 8 * 25, h: 21 * 25, fillStyle: 'black'})
+        const lit = offscreen.calls.slice(1).filter((call) => call.fillStyle === 'rgb(120,200,60)')
         expect(lit.length).toBe(8 * 21)
-        expect(redraws[0].calls[0].x).toBe(0)
-        expect(redraws[0].calls[0].y).toBe(20 * 25)
-        expect(redraws[0].calls.some((c) => c.x === 7 * 25 && c.y === 0 && c.fillStyle === 'rgb(120,200,60)')).toBe(true)
+        expect(offscreen.calls[1].x).toBe(7 * 25)
+        expect(offscreen.calls[1].y).toBe(0)
+        expect(offscreen.calls.some((c) => c.x === 0 && c.y === 20 * 25 && c.fillStyle === 'rgb(120,200,60)')).toBe(true)
+        expect(visible.calls.length).toBe(0)
     })
 
     it('emits select-strategy when a strategy is clicked', () => {
