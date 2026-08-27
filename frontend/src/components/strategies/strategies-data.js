@@ -48,6 +48,15 @@ export const colors = [
 ]
 
 
+export const fireworks = [
+    {
+        strategyName: 'fireworks',
+        name: "Fireworks",
+        params: {}
+    }
+]
+
+
 export const images = [
     {
         strategyName: 'image',
