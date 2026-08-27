@@ -11,6 +11,7 @@ HTMLCanvasElement.prototype.getContext = function () {
         fillRect: (x, y, w, h) => {
             stub.calls.push({x, y, w, h, fillStyle: stub.fillStyle})
         },
+        drawImage: () => {},
     }
     contextStubs.push(stub)
     return stub
