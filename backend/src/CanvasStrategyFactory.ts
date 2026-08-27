@@ -2,6 +2,7 @@
 import ColorStrategy from "./canvasStrategies/ColorStrategy";
 import OFFStrategy from "./canvasStrategies/OFFStrategy";
 import ImageStrategy from "./canvasStrategies/ImageStrategy";
+import FireworksStrategy from "./canvasStrategies/FireworksStrategy";
 import {CanvasScreen} from "./screen/CanvasScreen";
 import AbstractStrategy from "./canvasStrategies/AbstractStrategy";
 
@@ -14,6 +15,7 @@ const templates: { [id: string] :  Constructor<AbstractStrategy>}   = {
     'color': ColorStrategy,
     'off':  OFFStrategy,
     'image': ImageStrategy,
+    'fireworks': FireworksStrategy,
 }
 
 export default class CanvasStrategyFactory {
