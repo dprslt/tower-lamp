@@ -27,7 +27,7 @@ io.on('connection', () => {
 server.listen(30008)
 
 
-const fadeCandyConnection = new FadeCandyConnection(process.env.FADE_CANDY_URL || "ws://192.168.1.71:7890")
+const fadeCandyConnection = new FadeCandyConnection(process.env.FADE_CANDY_URL || "ws://lamp.local:7890")
 fadeCandyConnection.connect()
 let fadeCandySocket = fadeCandyConnection.socket
 

@@ -23,6 +23,8 @@ builds stop at 10.x). Do not "upgrade" it.
 
 ## Access
 
+- The lamp also advertises itself over mDNS: `lamp.local` resolves to its current
+  IP (use it over hardcoded IPs — DHCP may change).
 - SSH: `ssh -i ~/.ssh/id_ed25519 pi@192.168.17.34` (key `pi-lamp`, no password auth).
 - The `pi` password (needed for `sudo -S`) is **rotated** and lives on the Pi at
   `/root/pi-password.txt` — read it there, never hardcode or commit it. It may
