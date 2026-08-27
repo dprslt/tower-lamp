@@ -91,17 +91,25 @@ describe('app smoke test', () => {
         )
         expect(screen.getAllByText('Lampe').length).toBeGreaterThan(0)
 
-        const pixels = document.querySelectorAll('.pixel')
-        expect(pixels.length).toBe(8 * 21 * 2)
+        const canvases = document.querySelectorAll('canvas.screen')
+        expect(canvases.length).toBe(2)
+        expect(canvases[0].width).toBe(8 * 25)
+        expect(canvases[0].height).toBe(21 * 25)
+
+        const stubs = window.__screenCanvasStubs.slice(-2)
+        expect(stubs[0].calls.length).toBe(8 * 21)
+        expect(stubs[0].calls[0].fillStyle).toBe('rgb(0,0,0)')
 
         fireHandlers(handlers, 'connect')
         expect(document.querySelector('.header-bar').className).toContain('good')
 
         fireHandlers(handlers, 'screen-update', buildScreenFrame())
-        const litPixels = Array.from(document.querySelectorAll('.pixel'))
-            .filter((pixel) => pixel.style.backgroundColor !== '')
-        expect(litPixels.length).toBe(8 * 21 * 2)
-        expect(litPixels[0].style.backgroundColor).toBe('rgb(120, 200, 60)')
+        const redraws = window.__screenCanvasStubs.slice(-2)
+        const lit = redraws[0].calls.filter((call) => call.fillStyle === 'rgb(120,200,60)')
+        expect(lit.length).toBe(8 * 21)
+        expect(redraws[0].calls[0].x).toBe(0)
+        expect(redraws[0].calls[0].y).toBe(20 * 25)
+        expect(redraws[0].calls.some((c) => c.x === 7 * 25 && c.y === 0 && c.fillStyle === 'rgb(120,200,60)')).toBe(true)
     })
 
     it('emits select-strategy when a strategy is clicked', () => {
@@ -133,6 +141,6 @@ describe('app smoke test', () => {
 
         expect(screen.getByText('LAMPE')).toBeInTheDocument()
         expect(screen.getByText('ON')).toBeInTheDocument()
-        expect(document.querySelectorAll('.pixel').length).toBe(8 * 21)
+        expect(document.querySelectorAll('canvas.screen').length).toBe(1)
     })
 })

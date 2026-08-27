@@ -1,16 +1,10 @@
-//REACT
-import {Component} from "react"
+import {Component, createRef} from "react"
 import PropTypes from 'prop-types'
-// REDUX
-// APP
-
-import Pixel from "./pixel"
-
-import './screen.scss'
 
 class Screen extends Component {
-    constructor (props) {
+    constructor(props) {
         super(props)
+        this.canvasRef = createRef()
     }
 
     static propTypes = {
@@ -22,19 +16,45 @@ class Screen extends Component {
         externalStyle: PropTypes.bool,
     };
 
+    componentDidMount() {
+        this.draw()
+    }
 
-    renderCells() {
-      return this.props.data.map(e => <Pixel className="pixel" key={e.index} r={e.color[0]} g={e.color[1]} b={e.color[2]}/>)
+    componentDidUpdate() {
+        this.draw()
+    }
+
+    draw() {
+        const canvas = this.canvasRef.current
+        if (!canvas) {
+            return
+        }
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+            return
+        }
+
+        const {data, x, y, pixelSize} = this.props
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        for (const cell of data) {
+            const col = x - 1 - Math.floor(cell.index / y)
+            const row = cell.index % y
+            const [r, g, b] = cell.color
+            ctx.fillStyle = `rgb(${r},${g},${b})`
+            ctx.fillRect(col * pixelSize, row * pixelSize, pixelSize, pixelSize)
+        }
     }
 
     render() {
+        const {x, y, pixelSize, externalStyle} = this.props
         return (
-          <div className="screen" style={this.props.externalStyle ? {} : {
-              gridTemplateColumns: "repeat("+this.props.x+", "+this.props.pixelSize+"px)",
-              gridTemplateRows: "repeat("+this.props.y+", "+this.props.pixelSize+"px)",
-          }}>
-            {this.renderCells()}
-          </div>
+            <canvas
+                ref={this.canvasRef}
+                className="screen"
+                width={x * pixelSize}
+                height={y * pixelSize}
+                style={externalStyle ? {} : {width: x * pixelSize, height: y * pixelSize}}
+            />
         )
     }
 }
