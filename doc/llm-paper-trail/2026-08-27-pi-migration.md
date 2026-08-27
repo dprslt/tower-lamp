@@ -282,37 +282,39 @@ alone don't cover libusb access.
 
 - **Date:** 2026-08-27
 - **Component:** fcserver
-- **Status:** open
+- **Status:** resolved
 
 **Symptom**
 After the permissions fix the error changed to `Error opening Fadecandy: Input/Output Error`
-— the libusb control handshake to the device fails.
+— the libusb control handshake to the device fails. Only under the systemd service: a
+foreground run (`sudo -u lamp ...`) attached the device fine.
 
 **Diagnosis trail**
-- Soft replug (`/sys/bus/usb/devices/1-1/authorized` 0→1) did not help.
-- `strace` shows fcserver enumerates the device correctly (reads
-  `/sys/bus/usb/devices/1-1/descriptors`), then the open ioctl fails — the trace cut off
-  before the failing call was captured.
-- Old stretch `cmdline.txt` contained `dwc_otg.lpm_enable=0`; trixie's did not. Added
-  `dwc_otg.lpm_enable=0 usbcore.autosuspend=-1` to `/boot/firmware/cmdline.txt` and
-  rebooted — **no change** (same EIO).
-- Device works on the same Pi under stretch (old system) → kernel 6.18 USB stack +
-  FadeCandy quirk or PSU-current issue when the FadeCandy is powered from the Pi's USB.
+1. Foreground `strace -f -e trace=ioctl,openat`: device **attached**, normal
+   `USBDEVFS_SUBMITURB/REAPURBNDELAY` traffic — binary + device + user are all fine.
+2. Minimal systemd unit (User=lamp only) → attaches. So one of the hardening directives
+   was the culprit.
+3. Bisect with drop-ins: `DevicePolicy=auto` alone still failed — because the
+   `DeviceAllow=/dev/bus/usb/* rw` **path glob** from the original unit stayed in force.
+4. `DevicePolicy=closed` + `DeviceAllow=char-usb_device rw` → **attaches**. The path glob
+   never matches in systemd's device cgroup; the type-based spec does.
 
 **Root cause**
-Not yet isolated. Prime suspects (in order): kernel/dwc_otg behavior change vs the 2019
-fcserver binary's libusb usage; marginal 5V current with Pi + WiFi + FadeCandy on one PSU;
-a device-side state (firmware) issue.
+systemd device-cgroup allowlist: path globs like `/dev/bus/usb/*` do not grant access to
+USB device nodes (char major 189); the correct spec is the type form `char-usb_device`.
+The failure surfaced as libusb EIO at open, not EACCES.
 
 **Fix applied**
-None yet.
+In `/etc/systemd/system/lamp-fc-server.service`:
+`DeviceAllow=char-usb_device rw` (replacing `/dev/bus/usb/* rw`), keep
+`DeviceAllow=/dev/ttyACM* rw` and `DevicePolicy=closed`. Verified:
+`USB device Fadecandy (Serial# XNZHZFTZDFIVGPQX, Version 1.07) attached.` and backend
+`Connected to the fadeCandy`. Test units removed.
 
 **Prevention / follow-up**
-Next steps to try: capture the exact failing ioctl with `strace -f -e trace=ioctl` on a
-non-systemd foreground run (stop the service first); try `usbreset`/`libusb_reset` before
-open; test the FadeCandy on the other Pi (aurora, `.33`) with the same binary to split
-device-vs-Pi; try powering the FadeCandy from a separate 5V supply; re-flash the OLD
-stretch backup as a control (does the device work there?).
+When hardening USB services use `DeviceAllow=char-usb_device rw` (or `char-usb_serial`)
+instead of `/dev/bus/usb/*`. Final hardware check (LED tower) is done when the lamp is
+reassembled.
 
 ---
 
