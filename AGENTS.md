@@ -85,6 +85,28 @@ clients.
 - `src/backend-url.js` — backend WS URL: `VITE_BACKEND_WS_URL` or
   `<location.hostname>:30008` (works in dev and on the Pi alike).
 
+## Default backend workflow (fake FadeCandy)
+
+Unless the user explicitly asks for the real tower, run the backend against
+the **fake FadeCandy server** — it exercises the full stack (Socket.IO,
+`select-strategy`, 40fps refresh) and records what the lamp would receive,
+Without touching the shared hardware. This is the default: if several
+backends stream to the single real FadeCandy at once, their 40fps frame
+streams interleave on the LEDs (blinking/flickering) — it is not a clean
+last-writer-wins, so the fake keeps agents from corrupting each other's
+bring-up work.
+
+```bash
+# terminal 1 — fake FadeCandy (default port 7891, records frames to fake-fc-out/)
+node --import tsx src/fakeFadeCandy.ts --out fake-fc-out
+
+# terminal 2 — real backend, plugged into the fake instead of the lamp
+FADE_CANDY_URL=ws://127.0.0.1:7891 npm run dev
+```
+
+Assert against `fake-fc-out/latest.json` / `stats.json` (or the web UI) as
+you would against the tower. Full workflow in the `lamp-preview` skill.
+
 ## Local development against the tower
 
 You do NOT need to deploy to the Pi to test strategies: run the backend on the
@@ -94,8 +116,8 @@ dev machine and it drives the FadeCandy that lives on the lamp over the LAN
 - The lamp advertises itself over **mDNS** (avahi): `lamp.local` resolves to its
   current IP (`192.168.17.34` at last sighting, DHCP may change it). Prefer
   `lamp.local` over hardcoded IPs.
-- Run the backend locally, pointing at the tower's FadeCandy (this is the
-  default):
+- To drive the **real tower** (only when the user explicitly asks, e.g.
+  bring-up checks), run the backend pointing at the lamp's FadeCandy:
 
   ```bash
   cd backend
@@ -172,7 +194,9 @@ without colliding:
 - **The only shared resource is the real tower**: the FadeCandy is a single
   physical device (one `:7890` WebSocket endpoint on the lamp). Parallel
   agents can each run their own backend + frontend stack, but if several
-  backends point `FADE_CANDY_URL` at the lamp at once, the last
-  `select-strategy` wins — coordinate who owns the tower for bring-up checks,
-  and remember mounting a strategy locally lights the actual LEDs (prefer
-  **red** over full-white).
+  backends point `FADE_CANDY_URL` at the lamp at once, their frame streams
+  interleave on the LEDs (blinking/flickering, not a clean last-writer-wins).
+  The default fake-FadeCandy workflow (see above) sidesteps this entirely —
+  only point a backend at the lamp when the user explicitly asks for a
+  bring-up check, and remember mounting a strategy locally lights the actual
+  LEDs (prefer **red** over full-white).

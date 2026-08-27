@@ -8,6 +8,8 @@
 "start": "node scripts/with-port.mjs node ./build/index.js",
     "dev": "node scripts/with-port.mjs tsx watch src/index.ts",
     "dev:log": "node -e \"require('fs').mkdirSync('logs',{recursive:true})\" && node scripts/with-port.mjs tsx watch src/index.ts >> logs/backend.log 2>&1",
+    "preview": "node --import tsx src/preview.ts",
+    "fake-fadecandy": "node --import tsx src/fakeFadeCandy.ts",
     "build": "tsc",
     "check-types": "tsc --noEmit",
     "test": "node --import tsx --test \"src/test/*.test.ts\"",
