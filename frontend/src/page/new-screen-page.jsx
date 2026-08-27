@@ -8,7 +8,7 @@ import io from 'socket.io-client'
 import './screen-page.scss'
 import {Col, Container, Row} from "reactstrap"
 import HeaderBar from "../components/header/HeaderBar"
-import {colors, images, fireworks} from "../components/strategies/strategies-data"
+import {colors, images, animations} from "../components/strategies/strategies-data"
 import BACKEND_WS_URL from "../backend-url"
 
 export default class NewScreenPage extends Component {
@@ -91,7 +91,7 @@ export default class NewScreenPage extends Component {
                         </div>
                         <h4>Animations :</h4>
                         <div className={"strategies-container basic-strategies"}>
-                            <Strategies playHandler={this.playHandler} strategies={fireworks}/>
+                            <Strategies playHandler={this.playHandler} strategies={animations}/>
                         </div>
                         <h4>Images :</h4>
                         <div className={"strategies-container basic-strategies"}>

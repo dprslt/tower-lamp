@@ -1,4 +1,4 @@
-import {Circle, Image as KonvaImage, Layer, Rect, Stage} from "react-konva";
+import {Image as KonvaImage, Layer, Rect, Stage} from "react-konva";
 import {virtualScreenHeight, virtualScreenWidth} from "./strategies";
 
 const CIRCLE_SIZE = 60
@@ -40,45 +40,38 @@ const ImageStrategy = ({params, actionHandler}) => {
 }
 
 
-const FireworksStrategy = ({actionHandler}) => {
+const FireworksStrategy = ({params, actionHandler}) => {
+    const image = new Image()
+    image.src = params.data
     return <Stage width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
         <Layer>
-            <Rect x={0}
-                  y={0}
-                  width={CIRCLE_SIZE}
-                  height={CIRCLE_SIZE}
-                  fill={'#0b0b14'}
-                  onTap={actionHandler}
+            <KonvaImage x={0}
+                        y={0}
+                        onTap={actionHandler}
+                        width={virtualScreenWidth}
+                        height={virtualScreenHeight}
+                        scaleX={CIRCLE_SIZE / virtualScreenWidth}
+                        scaleY={CIRCLE_SIZE / virtualScreenHeight}
+                        image={image}
             />
-            <Circle x={CIRCLE_SIZE / 2}
-                    y={CIRCLE_SIZE / 2}
-                    radius={2}
-                    fill={'#fff8d0'}
-                    onTap={actionHandler}
-            />
-            <Circle x={CIRCLE_SIZE / 2 - 10}
-                    y={CIRCLE_SIZE / 2 + 8}
-                    radius={3}
-                    fill={'#ff4d6d'}
-                    onTap={actionHandler}
-            />
-            <Circle x={CIRCLE_SIZE / 2 + 12}
-                    y={CIRCLE_SIZE / 2 + 5}
-                    radius={2.5}
-                    fill={'#4dccff'}
-                    onTap={actionHandler}
-            />
-            <Circle x={CIRCLE_SIZE / 2 - 6}
-                    y={CIRCLE_SIZE / 2 - 12}
-                    radius={2}
-                    fill={'#ffe66d'}
-                    onTap={actionHandler}
-            />
-            <Circle x={CIRCLE_SIZE / 2 + 8}
-                    y={CIRCLE_SIZE / 2 - 10}
-                    radius={3}
-                    fill={'#c084fc'}
-                    onTap={actionHandler}
+        </Layer>
+    </Stage>
+}
+
+
+const RainStrategy = ({params, actionHandler}) => {
+    const image = new Image()
+    image.src = params.data
+    return <Stage width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
+        <Layer>
+            <KonvaImage x={0}
+                        y={0}
+                        onTap={actionHandler}
+                        width={virtualScreenWidth}
+                        height={virtualScreenHeight}
+                        scaleX={CIRCLE_SIZE / virtualScreenWidth}
+                        scaleY={CIRCLE_SIZE / virtualScreenHeight}
+                        image={image}
             />
         </Layer>
     </Stage>
@@ -100,7 +93,10 @@ export default function CircleStrategy(props) {
             stratComponent = <ImageStrategy params={props.strategy.params} actionHandler={actionHandler}/>
             break
         case 'fireworks':
-            stratComponent = <FireworksStrategy actionHandler={actionHandler}/>
+            stratComponent = <FireworksStrategy params={props.strategy.params} actionHandler={actionHandler}/>
+            break
+        case 'rain':
+            stratComponent = <RainStrategy params={props.strategy.params} actionHandler={actionHandler}/>
             break
     }
 
