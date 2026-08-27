@@ -174,3 +174,21 @@ test('refresh() writes to the current fadecandy socket after reconnects', async 
     assert.equal(firstSends, 1)
     assert.equal(secondSends, 1)
 })
+
+test('start() paces refreshes on a frame grid and stop() halts them', async () => {
+    const screen = newScreen()
+    let refreshes = 0
+    screen.refresh = () => { refreshes++; return Promise.resolve() }
+
+    screen.start()
+    await new Promise((resolve) => setTimeout(resolve, 130))
+    screen.stop()
+    const refreshesWhileRunning = refreshes
+
+    await new Promise((resolve) => setTimeout(resolve, 70))
+    const refreshesAfterStop = refreshes
+
+    assert.ok(refreshesWhileRunning >= 3, `expected ~5 refreshes in 130ms, got ${refreshesWhileRunning}`)
+    assert.ok(refreshesWhileRunning <= 8, `expected ~5 refreshes in 130ms, got ${refreshesWhileRunning}`)
+    assert.equal(refreshesAfterStop, refreshesWhileRunning, 'no refreshes after stop()')
+})

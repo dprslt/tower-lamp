@@ -17,7 +17,8 @@ export class CanvasScreen extends Screen {
     private cellMatrix: RGBColor[][]
     private pixelsVisible = true
     private layers: CanvasLayer[] = []
-    private refreshIntervalId : NodeJS.Timeout | undefined;
+    private refreshTimer: NodeJS.Timeout | undefined
+    private static readonly FRAME_TIME = 1000 / 40
 
     constructor(width: number, height: number, serverSocketFrontend: Server, fadeCandy: FadeCandyConnection, zoomFactor: number) {
         super(width, height, serverSocketFrontend, fadeCandy)
@@ -129,14 +130,29 @@ export class CanvasScreen extends Screen {
     }
 
     start(){
-        this.refreshIntervalId = setInterval(() => {
+        if (this.refreshTimer) {
+            return
+        }
+        const startTime = Date.now()
+        let frameIndex = 0
+
+        const scheduleNext = () => {
+            if (!this.refreshTimer) {
+                return
+            }
+            frameIndex++
+            const nextFrame = startTime + frameIndex * CanvasScreen.FRAME_TIME
+            this.refreshTimer = setTimeout(scheduleNext, Math.max(0, nextFrame - Date.now()))
             this.refresh()
-        }, 1000 / 40)
+        }
+
+        this.refreshTimer = setTimeout(scheduleNext, CanvasScreen.FRAME_TIME)
     }
 
     stop(){
-        if(this.refreshIntervalId){
-            clearInterval(this.refreshIntervalId)
+        if(this.refreshTimer){
+            clearTimeout(this.refreshTimer)
+            this.refreshTimer = undefined
         }
     }
 }
