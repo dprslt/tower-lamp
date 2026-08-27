@@ -7,6 +7,10 @@ FadeCandy board, controlled through a web UI.
 
 > When you hit a problem, paper-trail it in `doc/llm-paper-trail/` (template in its README).
 
+> Avoid full-white (and other high-brightness) tests on the tower: 168 LEDs at full white
+> draw a lot of power and the thermal dissipation is not optimal yet — prefer red for
+> bring-up checks.
+
 - **Hardware**: FadeCandy (fcserver) on a Raspberry Pi, LEDs wired to it.
 - **Backend** (`backend/`): Node.js + TypeScript, Express + Socket.IO. Renders
   strategies (animations) on an offscreen canvas, samples pixels, sends them to
