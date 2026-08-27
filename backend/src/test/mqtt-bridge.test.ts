@@ -20,6 +20,7 @@ import {
     parseLightCommand,
     resolveMqttOptions,
 } from '../MqttBridge'
+import CanvasStrategyFactory from '../CanvasStrategyFactory'
 
 const baseConfig = {
     host: 'broker.local',
@@ -124,6 +125,20 @@ test('parseActions returns an empty registry for garbage', () => {
     assert.deepEqual(parseActions(''), {})
     assert.deepEqual(parseActions('not json at all'), {})
     assert.deepEqual(parseActions(path.join(os.tmpdir(), 'definitely-missing-actions.json')), {})
+})
+
+test('the default actions registry only references registered strategies', () => {
+    const file = path.join(__dirname, '..', '..', '..', 'config', 'mqtt-actions.json')
+    const actions = parseActions(fs.readFileSync(file, 'utf8'))
+    assert.ok(Object.keys(actions).length > 0, 'registry should not be empty')
+    const templates = Object.keys(new CanvasStrategyFactory({} as never).getTemplates())
+    for (const [actionId, action] of Object.entries(actions)) {
+        assert.ok(actionId.length > 0)
+        assert.ok(
+            templates.includes(action.strategy),
+            `action "${actionId}" references unregistered strategy "${action.strategy}"`
+        )
+    }
 })
 
 test('resolveMqttOptions builds a will with the availability topic', () => {

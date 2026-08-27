@@ -1,0 +1,14 @@
+{
+  "sunset": {
+    "strategy": "color",
+    "params": {
+      "fillLinearGradientStartPoint": {"x": 160, "y": 420},
+      "fillLinearGradientEndPoint": {"x": 0, "y": 0},
+      "fillLinearGradientColorStops": [0, "red", 1, "gold"]
+    }
+  },
+  "fireworks": {
+    "strategy": "fireworks",
+    "params": {}
+  }
+}
