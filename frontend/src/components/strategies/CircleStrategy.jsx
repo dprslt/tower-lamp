@@ -59,6 +59,7 @@ export default function CircleStrategy(props) {
         case 'image':
         case 'fireworks':
         case 'rain':
+        case 'spinning-dot':
             stratComponent = <ImageStrategy params={props.strategy.params} actionHandler={actionHandler}/>
             break
     }

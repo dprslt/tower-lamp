@@ -6,6 +6,7 @@ import ColorStrategy from '../canvasStrategies/ColorStrategy'
 import FireworksStrategy from '../canvasStrategies/FireworksStrategy'
 import MovingPixelStrategy from '../canvasStrategies/MovingPixelStrategy'
 import OFFStrategy from '../canvasStrategies/OFFStrategy'
+import SpinningDotStrategy from '../canvasStrategies/SpinningDotStrategy'
 import CanvasStrategyFactory from '../CanvasStrategyFactory'
 import FadeCandyConnection from '../FadeCandyConnection'
 
@@ -72,6 +73,78 @@ test('fireworks with bursts=1 finishes once the burst fades', async () => {
 test('fireworks without bursts never finishes', async () => {
     const screen = newScreen()
     const strategy = new FireworksStrategy(screen, {launchIntervalMs: 100000})
+    const realNow = Date.now
+    const fakeNow = (ms: number) => {
+        Date.now = () => ms
+    }
+    fakeNow(1000)
+    strategy.mount()
+
+    for (let step = 0; step < 20; step++) {
+        fakeNow(1000 + step * 500)
+        await screen.flat()
+    }
+    assert.equal(strategy.isDone(), false)
+
+    Date.now = realNow
+})
+
+test('spinning-dot with runs=1 finishes after one rise and explosion', async () => {
+    const screen = newScreen()
+    const strategy = new SpinningDotStrategy(screen, {runs: 1})
+    const realNow = Date.now
+    const fakeNow = (ms: number) => {
+        Date.now = () => ms
+    }
+    fakeNow(1000)
+    strategy.mount()
+
+    for (let step = 0; step < 20; step++) {
+        fakeNow(1000 + step * 500)
+        await screen.flat()
+        if (strategy.isDone()) {
+            break
+        }
+    }
+    assert.equal(strategy.isDone(), true, 'a single run should finish within 10s')
+
+    Date.now = realNow
+})
+
+test('spinning-dot with runs=1 does not re-spawn the dot after the explosion', async () => {
+    const screen = newScreen()
+    const strategy = new SpinningDotStrategy(screen, {runs: 1})
+    const realNow = Date.now
+    const fakeNow = (ms: number) => {
+        Date.now = () => ms
+    }
+    fakeNow(1000)
+    strategy.mount()
+
+    const brightest = (flat: number[]) => {
+        let max = 0
+        for (const v of flat) {
+            if (v > max) {
+                max = v
+            }
+        }
+        return max
+    }
+
+    for (let step = 0; step <= 6; step++) {
+        fakeNow(1000 + step * 500)
+        const flat = await screen.flat()
+        if (step === 6) {
+            assert.ok(brightest(flat) < 200, 'no second dot half a second after the single explosion')
+        }
+    }
+
+    Date.now = realNow
+})
+
+test('spinning-dot without runs never finishes', async () => {
+    const screen = newScreen()
+    const strategy = new SpinningDotStrategy(screen, {})
     const realNow = Date.now
     const fakeNow = (ms: number) => {
         Date.now = () => ms
