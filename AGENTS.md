@@ -69,7 +69,7 @@ the `lamp-preview` skill for the full workflow.
    The current strategy is unmounted before mounting the new one.
 
 Strategies (`backend/src/canvasStrategies/`, registered in
-`CanvasStrategyFactory.ts`): `color`, `off`, `image`, `fireworks`. All extend
+`CanvasStrategyFactory.ts`): `color`, `off`, `image`, `fireworks`, `rain`. All extend
 `AbstractStrategy` and draw onto the canvas via `CanvasScreen` layers; the
 screen samples the raster and pushes pixels to both the FadeCandy and browser
 clients.

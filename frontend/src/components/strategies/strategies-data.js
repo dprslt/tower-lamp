@@ -57,6 +57,15 @@ export const fireworks = [
 ]
 
 
+export const rain = [
+    {
+        strategyName: 'rain',
+        name: "Rainy Day",
+        params: {}
+    }
+]
+
+
 export const images = [
     {
         strategyName: 'image',
