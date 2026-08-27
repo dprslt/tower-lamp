@@ -126,3 +126,44 @@ dev machine and it drives the FadeCandy that lives on the lamp over the LAN
 - Backend license is MIT, frontend is ISC (as declared in their package.json).
 - Logging uses `console` in the backend (there is a `log4js` dependency but it
   is not wired up).
+
+## Running dev servers (Orca terminal preference)
+
+Long-lived processes (backend `npm run dev`, frontend `npm run dev`) should live
+in an Orca terminal when Orca is available, so the user can see/stop them in the
+Orca UI — do not default to the raw OS or WSL shell for them.
+
+- Resolve the Orca CLI per the `orca-cli` skill (`ORCA_CLI_COMMAND` → `orca-dev` →
+  `orca-ide` → `orca`), then confirm the app is up once per session:
+  `orca status --json`.
+- If Orca is running, start each dev server in its own terminal:
+  `orca terminal create --worktree active --title "backend" --command "npm run dev" --json`
+  (repeat for the frontend), then use `orca terminal list` / `read` / `send` /
+  `stop` to interact with and shut them down.
+- If Orca is not available, run dev servers in the current shell as background
+  jobs (never blocking), and stop them when done.
+
+## Parallel worktrees (dev ports, deps, shared hardware)
+
+Several agents can work **in parallel**, each in its own linked git worktree,
+without colliding:
+
+- **Deterministic per-worktree ports**: `npm run dev` in `backend/` and
+  `frontend/` run through `scripts/with-port.mjs`, which derives a
+  deterministic port from the current git branch when run inside a linked
+  worktree (backend: 30009-31007, frontend: 7086-8084). The main checkout
+  keeps the defaults (:30008 / :7085), and an explicit `PORT` env var always
+  wins. The `[with-port]` log line prints the resolved port; in a linked
+  worktree the frontend also auto-points `VITE_BACKEND_WS_URL` at the
+  worktree's own backend (override with a `VITE_BACKEND_WS_URL` env var).
+- **Deps are auto-installed on worktree creation**: `orca.yaml` runs
+  `scripts/setup-worktree.mjs` (links gitignored config — `.opencode/` — and
+  pre-seeds `node_modules` from the primary worktree) then `npm ci` in
+  `backend/` and `frontend/`, so a fresh worktree is immediately ready.
+- **The only shared resource is the real tower**: the FadeCandy is a single
+  physical device (one `:7890` WebSocket endpoint on the lamp). Parallel
+  agents can each run their own backend + frontend stack, but if several
+  backends point `FADE_CANDY_URL` at the lamp at once, the last
+  `select-strategy` wins — coordinate who owns the tower for bring-up checks,
+  and remember mounting a strategy locally lights the actual LEDs (prefer
+  **red** over full-white).

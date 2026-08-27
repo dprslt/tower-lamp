@@ -1,0 +1,9 @@
+worktree:
+  sharedDirectories:
+    - scripts/pi/node_modules
+
+scripts:
+  setup: |
+    node scripts/setup-worktree.mjs
+    (cd backend && npm ci)
+    (cd frontend && npm ci)

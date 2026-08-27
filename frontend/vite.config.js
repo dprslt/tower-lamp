@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,
-    port: 7085,
+    port: process.env.PORT ? Number(process.env.PORT) : 7085,
   },
   test: {
     environment: 'jsdom',

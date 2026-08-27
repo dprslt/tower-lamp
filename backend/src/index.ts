@@ -26,7 +26,7 @@ const io = new Server(server, {
 io.on('connection', () => {
     console.log("Web Client Socket Connected")
 })
-server.listen(30008)
+server.listen(Number(process.env.PORT) || 30008)
 
 
 const fadeCandyConnection = new FadeCandyConnection(process.env.FADE_CANDY_URL || "ws://lamp.local:7890")
