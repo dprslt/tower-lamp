@@ -194,11 +194,13 @@ async function main(): Promise<void> {
     fs.mkdirSync(options.out, {recursive: true})
 
     const frames: ({index: number; file: string} & FrameStats)[] = []
+    let done = false
     for (let frameIndex = 0; frameIndex < options.frames; frameIndex++) {
         const simulatedMs = frameIndex * options.intervalMs
 
         Date.now = () => mountTime + simulatedMs
         const flat = await screen.flat()
+        done = strategy.isDone()
         Date.now = realNow
 
         const fileName = `frame-${String(frameIndex).padStart(3, '0')}`
@@ -217,6 +219,7 @@ async function main(): Promise<void> {
         height: HEIGHT,
         strategy: options.strategy,
         params: options.params,
+        done: done,
         frames,
     }
     fs.writeFileSync(path.join(options.out, 'manifest.json'), JSON.stringify(manifest, null, 2))

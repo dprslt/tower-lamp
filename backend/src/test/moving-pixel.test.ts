@@ -74,3 +74,41 @@ test('moving-pixel is registered in the strategy factory', () => {
     assert.ok(strategy instanceof MovingPixelStrategy)
     assert.equal(factory.getStrategyFromTemplate('nope', {}), null)
 })
+
+test('moving-pixel with runs=1 is done after one sweep', async () => {
+    const screen = newScreen()
+    const strategy = new MovingPixelStrategy(screen, {speed: 2, row: 10, runs: 1})
+    const realNow = Date.now
+    const fakeNow = (ms: number) => {
+        Date.now = () => ms
+    }
+    fakeNow(1000)
+    strategy.mount()
+
+    fakeNow(1000 + 3.9 * 1000)
+    await screen.flat()
+    assert.equal(strategy.isDone(), false, 'not done before the sweep ends')
+
+    fakeNow(1000 + 4.0 * 1000)
+    await screen.flat()
+    assert.equal(strategy.isDone(), true, 'done once one sweep elapsed')
+
+    Date.now = realNow
+})
+
+test('moving-pixel without runs never finishes', async () => {
+    const screen = newScreen()
+    const strategy = new MovingPixelStrategy(screen, {speed: 2, row: 10})
+    const realNow = Date.now
+    const fakeNow = (ms: number) => {
+        Date.now = () => ms
+    }
+    fakeNow(1000)
+    strategy.mount()
+
+    fakeNow(1000 + 60 * 1000)
+    await screen.flat()
+    assert.equal(strategy.isDone(), false)
+
+    Date.now = realNow
+})

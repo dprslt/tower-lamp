@@ -98,6 +98,13 @@ function selectStrategy(name: string, params: any, mirrorToMqtt: boolean = true)
     }
 }
 
+screen.setOnRefresh(() => {
+    if (animation && animation.isDone()) {
+        console.log("Strategy finished (" + (currentStrategy?.name ?? 'unknown') + ") — returning to stop")
+        selectStrategy('off', {})
+    }
+})
+
 function handleMqttCommand(command: MqttLightCommand): void {
     if (!mqttBridge) {
         return
