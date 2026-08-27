@@ -90,6 +90,31 @@ hardened — do not remove the sandbox:
 5. Socket test (from dev machine, socket.io-client): emit
    `select-strategy {name:'color', params:{fill:'red'}}` and confirm LEDs.
 
+## Debugging toolbox (scripts/pi/)
+
+Reusable helpers in the repo — do NOT re-invent these in throwaway temp scripts.
+Run from the repo root via `wsl -e bash scripts/pi/<tool>.sh` (or Git Bash).
+First run `setup.sh` once to cache the pi sudo password locally (read it from the Pi:
+`ssh pi@192.168.17.34 "sudo cat /root/pi-password.txt"` — it is NOT in the repo).
+
+| Tool | Use |
+|---|---|
+| `setup.sh` | one-time: cache the pi sudo password (`PI_PW='...' bash scripts/pi/setup.sh`) |
+| `status.sh` | health snapshot: services, fcserver attach, backend log, ports, OS/node |
+| `logs.sh [fc\|backend\|nginx\|all] [lines]` | journalctl for the lamp services |
+| `exec.sh '<cmd>'` | run any command on the Pi as `pi` |
+| `root.sh '<cmd>'` | run any command on the Pi as root (needs cached password) |
+| `send.sh <local> [remote-dir]` | copy a file/dir to the Pi (default /tmp) |
+| `scan.sh` | find the lamp Pi on the LAN (SSH sweep + key test — only lamp accepts the pi-lamp key) |
+| `deploy-backend.sh [dir]` | build (local) → ship → npm install `--prefix` → restart → log tail |
+| `deploy-frontend.sh [dir]` | build (local) → ship → `chmod -R a+rX` → reload nginx → HTTP check |
+| `verify.sh` | end-to-end: health + attach + backend + HTTP + **red** LED test |
+| `test-strategy.mjs <color>` | socket.io strategy test (needs `npm i socket.io-client` in `scripts/pi/` once) |
+
+Environment overrides: `PI_HOST`, `PI_USER`, `PI_KEY`, `PI_SUBNET`, `PI_PW_FILE`.
+Note: from WSL, the scripts transparently use Windows `ssh.exe`/`scp.exe` because
+NTFS-mounted keys look 0777 to WSL's ssh.
+
 ## Gotchas (learned the hard way — see doc/llm-paper-trail/2026-08-27-pi-migration.md)
 
 - **Never test with full white**: 168 LEDs at full white draw too much power and
