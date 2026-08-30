@@ -40,4 +40,5 @@ How to avoid it next time, or what remains to be done.
 
 ## Index
 
+- [2026-08-30 Rain strategy artifacts](2026-08-30-rain-strategy-artifacts.md) — stuck-pixel residue, lightning blinking, steppy drops (backend RainStrategy).
 - [2026-08-27 Pi OS migration](2026-08-27-pi-migration.md) — stretch → trixie, native systemd deploy, FadeCandy bring-up on a Pi Zero W (armv6).
