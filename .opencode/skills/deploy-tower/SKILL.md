@@ -53,6 +53,25 @@ The migrated backend is the one deployed (pure-TS rasterizer, **no node-canvas**
 If you build the legacy `main` backend instead it will NOT run (canvas is not
 installable on armv6 Node 22).
 
+**MQTT (Home Assistant) config**: the backend bridges to HA over MQTT when a
+host is configured (see README "Integration MQTT (Home Assistant)"). Like
+aurora, it reads `/etc/lamp-backend/mqtt.conf` at startup (`MQTT_*` env vars as
+fallback). The backend runs as user `lamp`, so the file must be root-owned with
+group `lamp` and `chmod 640` (a plain `chmod 600` makes it unreadable):
+
+```ini
+MQTT_HOST=mqtt://broker.local
+MQTT_PORT=1883
+MQTT_USER=lamp
+MQTT_PASS=<from the broker user setup>
+MQTT_ACTIONS=/etc/lamp-backend/actions.json
+```
+
+This file survives backend redeploys (`deploy-backend.sh` only overwrites
+`build/` + `package.json`). After creating/changing it:
+`sudo systemctl restart lamp-backend` and expect "Connected to the MQTT broker"
+in `journalctl -u lamp-backend`.
+
 ## Frontend deploy
 
 Build with Vite on the dev machine, ship `dist/`, fix perms (scp preserves 700

@@ -8,6 +8,12 @@ import FadeCandyConnection from "./FadeCandyConnection";
 import ColorStrategy from "./canvasStrategies/ColorStrategy";
 import CanvasStrategyFactory from "./CanvasStrategyFactory";
 import AbstractStrategy from "./canvasStrategies/AbstractStrategy";
+import MqttBridge, {
+    colorFillFromCommand,
+    loadMqttConfig,
+    MqttLightCommand,
+} from "./MqttBridge";
+import {parseColor, RGB} from "./screen/Rasterizer";
 
 
 console.log("Server starting")
@@ -38,6 +44,108 @@ const factory = new CanvasStrategyFactory(screen)
 let animation : AbstractStrategy | null = null
 let currentStrategy : { name: string, params: any } | null = null
 
+function solidFillFromParams(params: any): RGB | null {
+    if (typeof params?.fill === 'string') {
+        return parseColor(params.fill)
+    }
+    if (Array.isArray(params?.fill)) {
+        return params.fill as RGB
+    }
+    return null
+}
+
+function mirrorStrategyToMqtt(name: string, params: any): void {
+    if (!mqttBridge) {
+        return
+    }
+    if (name === 'off') {
+        mqttBridge.publishState({state: 'OFF', color: {r: 0, g: 0, b: 0}, brightness: 0})
+        return
+    }
+    if (name === 'color') {
+        const rgb = solidFillFromParams(params)
+        if (rgb) {
+            mqttBridge.publishState({state: 'ON', color: {r: rgb[0], g: rgb[1], b: rgb[2]}, brightness: 255})
+        }
+    }
+}
+
+function selectStrategy(name: string, params: any, mirrorToMqtt: boolean = true): boolean {
+    try {
+        if (animation) {
+            animation.unmount()
+        }
+
+        console.log("Launching new strategy : " + name)
+        const next = factory.getStrategyFromTemplate(name, params)
+        if (!next) {
+            console.error("Not strategy found for name "+ name)
+            return false
+        }
+
+        animation = next
+        animation.mount()
+        currentStrategy = { name, params }
+        io.emit('strategy-selected', currentStrategy)
+        if (mirrorToMqtt) {
+            mirrorStrategyToMqtt(name, params)
+        }
+        return true
+    } catch (e) {
+        console.error("Error while applying the new strategy.")
+        console.error(e)
+        return false
+    }
+}
+
+function handleMqttCommand(command: MqttLightCommand): void {
+    if (!mqttBridge) {
+        return
+    }
+    if (command.state === 'OFF') {
+        selectStrategy('off', {}, false)
+        mqttBridge.publishState({state: 'OFF', color: {r: 0, g: 0, b: 0}, brightness: 0})
+        return
+    }
+    const fill = colorFillFromCommand(command)
+    if (!fill) {
+        return
+    }
+    selectStrategy('color', {fill}, false)
+    mqttBridge.publishState({
+        state: 'ON',
+        color: command.color ?? {r: 255, g: 255, b: 255},
+        brightness: command.brightness ?? 255,
+    })
+}
+
+const mqttConfig = loadMqttConfig()
+const mqttBridge = mqttConfig ? new MqttBridge(mqttConfig, {
+    onCommand: (command) => handleMqttCommand(command),
+    onAction: (actionId) => {
+        const action = mqttConfig.actions[actionId]
+        if (action) {
+            selectStrategy(action.strategy, action.params)
+        }
+    },
+}) : null
+if (mqttBridge) {
+    mqttBridge.start()
+}
+
+process.on('SIGTERM', () => {
+    if (mqttBridge) {
+        mqttBridge.stop()
+    }
+    process.exit(0)
+})
+process.on('SIGINT', () => {
+    if (mqttBridge) {
+        mqttBridge.stop()
+    }
+    process.exit(0)
+})
+
 io.on('connection', (socket) => {
     if (currentStrategy) {
         socket.emit('strategy-selected', currentStrategy)
@@ -48,24 +156,7 @@ io.on('connection', (socket) => {
     })
 
     socket.on('select-strategy', function (data) {
-        try {
-            if (animation) {
-                animation.unmount()
-            }
-
-            console.log("Launching new strategy : " + data.name)
-            animation = factory.getStrategyFromTemplate(data.name, data.params)
-            if(animation){
-                animation.mount()
-                currentStrategy = { name: data.name, params: data.params }
-                io.emit('strategy-selected', currentStrategy)
-            } else {
-                console.error("Not strategy found for name "+ data.name)
-            }
-        } catch (e) {
-            console.error("Error while applying the new strategy.")
-            console.error(e)
-        }
+        selectStrategy(data.name, data.params)
     })
 
     socket.on('matrix-frame', function (data) {
