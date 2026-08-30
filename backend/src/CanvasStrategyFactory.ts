@@ -5,6 +5,7 @@ import ImageStrategy from "./canvasStrategies/ImageStrategy";
 import FireworksStrategy from "./canvasStrategies/FireworksStrategy";
 import RainStrategy from "./canvasStrategies/RainStrategy";
 import MovingPixelStrategy from "./canvasStrategies/MovingPixelStrategy";
+import SpinningDotStrategy from "./canvasStrategies/SpinningDotStrategy";
 import {CanvasScreen} from "./screen/CanvasScreen";
 import AbstractStrategy from "./canvasStrategies/AbstractStrategy";
 
@@ -20,6 +21,7 @@ const templates: { [id: string] :  Constructor<AbstractStrategy>}   = {
     'fireworks': FireworksStrategy,
     'rain': RainStrategy,
     'moving-pixel': MovingPixelStrategy,
+    'spinning-dot': SpinningDotStrategy,
 }
 
 export default class CanvasStrategyFactory {

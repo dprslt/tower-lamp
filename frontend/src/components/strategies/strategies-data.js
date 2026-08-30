@@ -50,6 +50,17 @@ export const colors = [
 
 export const animations = [
     {
+        strategyName: 'spinning-dot',
+        name: "Spinning Dot",
+        params: {
+            color: '#ff0000',
+            spinSpeed: 1.2,
+            spinAccel: 1.2,
+            riseSpeed: 20,
+            data: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='420' viewBox='0 0 8 21'%3E%3Crect width='8' height='21' fill='%230a0a12'/%3E%3Ccircle cx='4' cy='19' r='0.5' fill='%23ff2222' opacity='0.3'/%3E%3Ccircle cx='2.5' cy='15' r='0.6' fill='%23ff2222' opacity='0.45'/%3E%3Ccircle cx='5.5' cy='11' r='0.7' fill='%23ff2222' opacity='0.6'/%3E%3Ccircle cx='2.5' cy='7' r='0.8' fill='%23ff2222' opacity='0.8'/%3E%3Ccircle cx='4' cy='3' r='0.9' fill='%23ff4444'/%3E%3Ccircle cx='4' cy='2' r='1.6' fill='none' stroke='%23ffaa33' stroke-width='0.2' opacity='0.8'/%3E%3Ccircle cx='2.8' cy='1.4' r='0.3' fill='%23ffcc55'/%3E%3Ccircle cx='5.4' cy='2.2' r='0.25' fill='%23ffcc55'/%3E%3C/svg%3E"
+        }
+    },
+    {
         strategyName: 'fireworks',
         name: "Fireworks",
         // Icon: "Fireworks Expanding Outward in the Night Sky" by Jalfyn Benging, CC BY 4.0, via Wikimedia Commons
@@ -69,6 +80,7 @@ export const animations = [
 
 
 const fireworks = animations.find((a) => a.strategyName === 'fireworks')
+const spinningDot = animations.find((a) => a.strategyName === 'spinning-dot')
 
 export const oneShots = [
     {
@@ -77,6 +89,14 @@ export const oneShots = [
         params: {
             ...fireworks.params,
             bursts: 1
+        }
+    },
+    {
+        ...spinningDot,
+        name: "Spinning Dot — once",
+        params: {
+            ...spinningDot.params,
+            runs: 1
         }
     }
 ]
