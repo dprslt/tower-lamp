@@ -209,6 +209,8 @@ export function sunsetGradientParams(): Record<string, any> {
 export const defaultMqttActions: Record<string, MqttActionConfig> = {
     sunset: {strategy: 'color', params: sunsetGradientParams()},
     fireworks: {strategy: 'fireworks', params: {}},
+    rain: {strategy: 'rain', params: {}},
+    'spinning-dot': {strategy: 'spinning-dot', params: {}},
     stop: {strategy: 'off', params: {}},
 }
 

@@ -142,10 +142,12 @@ test('the default actions registry maps sunset, fireworks and stop to registered
 })
 
 test('the default actions registry has the expected buttons', () => {
-    assert.deepEqual(Object.keys(defaultMqttActions), ['sunset', 'fireworks', 'stop'])
+    assert.deepEqual(Object.keys(defaultMqttActions), ['sunset', 'fireworks', 'rain', 'spinning-dot', 'stop'])
     assert.equal(defaultMqttActions.sunset.strategy, 'color')
     assert.deepEqual(defaultMqttActions.sunset.params.fillLinearGradientColorStops, [0, 'red', 1, 'gold'])
     assert.equal(defaultMqttActions.fireworks.strategy, 'fireworks')
+    assert.equal(defaultMqttActions.rain.strategy, 'rain')
+    assert.equal(defaultMqttActions['spinning-dot'].strategy, 'spinning-dot')
     assert.equal(defaultMqttActions.stop.strategy, 'off')
 })
 

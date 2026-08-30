@@ -108,10 +108,11 @@ appears automatically in Home Assistant (MQTT discovery).
 
 Named strategies can be exposed to HA as MQTT button entities, one per action,
 via discovery. A default registry is built in — `sunset` (the red→gold
-gradient, same as the startup animation), `fireworks` and a `stop` button — so
-the buttons work out of the box. It can be replaced per-install with
-`MQTT_ACTIONS` (inline JSON, or a path to a JSON file with the same shape),
-mapping an action id to a strategy + params:
+gradient, same as the startup animation), `fireworks`, `rain`, `spinning-dot`
+(a red dot spinning up the tower) and a `stop` button — so the buttons work
+out of the box. It can be replaced per-install with `MQTT_ACTIONS` (inline
+JSON, or a path to a JSON file with the same shape), mapping an action id to a
+strategy + params:
 
 ```json
 {
