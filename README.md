@@ -56,13 +56,13 @@ Build the backend and frontend on a dev machine, then ship them with
 
 ## Integration MQTT (Home Assistant)
 
-Like [Aurora](https://github.com/dprslt/aurora), the lamp exposes itself on
-the Home Assistant MQTT network as a **discoverable light** (rgb + brightness),
+The lamp exposes itself on the Home Assistant MQTT network as a
+**discoverable light** (rgb + brightness),
 plus one **button entity per registered action** — no HA-side YAML required.
 
 The MQTT client lives in the backend (`backend/src/MqttBridge.ts`). It reads
-`/etc/lamp-backend/mqtt.conf` at startup (same layout as aurora's
-`/etc/aurora/mqtt.conf`) and is **disabled unless a host is configured**.
+`/etc/lamp-backend/mqtt.conf` at startup and is **disabled unless a host is
+configured**.
 
 1. **Create a broker user** — if Mosquitto runs in Home Assistant: Settings →
    Mosquitto → Users, e.g. `lamp`. Otherwise:
