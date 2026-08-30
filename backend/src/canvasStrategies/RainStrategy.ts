@@ -30,6 +30,7 @@ const BOLT_COLOR: RGB = [150, 120, 255]
 
 const FADE_HALF_LIFE_S = 0.08
 const FLASH_DURATION_S = 0.45
+const BOLT_LIFE_S = 0.12
 const RIPPLE_LIFE_S = 0.55
 
 export default class RainStrategy extends AbstractStrategy {
@@ -51,6 +52,7 @@ export default class RainStrategy extends AbstractStrategy {
     private nextLightningAt = 0
     private flash = 0
     private boltX = -1
+    private boltLife = 0
     private boltJitter: number[] = []
     private layer: CanvasLayer | null = null
 
@@ -88,6 +90,7 @@ export default class RainStrategy extends AbstractStrategy {
         this.nextLightningAt = Date.now() + this.lightningIntervalMs
         this.flash = 0
         this.boltX = -1
+        this.boltLife = 0
         this.drops.length = 0
         this.ripples.length = 0
         if (this.layer) {
@@ -105,16 +108,13 @@ export default class RainStrategy extends AbstractStrategy {
     private tick(dt: number): void {
         const fade = Math.pow(0.5, dt / FADE_HALF_LIFE_S)
         for (const cell of this.grid) {
-            cell[0] = Math.round(cell[0] * fade)
-            cell[1] = Math.round(cell[1] * fade)
-            cell[2] = Math.round(cell[2] * fade)
+            cell[0] *= fade
+            cell[1] *= fade
+            cell[2] *= fade
         }
 
         if (this.flash > 0) {
             this.flash = Math.max(0, this.flash - dt / FLASH_DURATION_S)
-            if (this.flash === 0) {
-                this.boltX = -1
-            }
         }
 
         const now = Date.now()
@@ -137,9 +137,13 @@ export default class RainStrategy extends AbstractStrategy {
                 this.drops.splice(i, 1)
                 continue
             }
-            this.stamp(Math.round(drop.x), Math.round(drop.y), drop.color, 1)
-            this.stamp(Math.round(drop.x), Math.round(drop.y) - 1, drop.color, 0.6)
-            this.stamp(Math.round(drop.x), Math.round(drop.y) - 2, drop.color, 0.3)
+            const row = Math.floor(drop.y)
+            const frac = drop.y - row
+            const col = Math.round(drop.x)
+            this.stamp(col, row, drop.color, 1)
+            this.stamp(col, row + 1, drop.color, frac)
+            this.stamp(col, row - 1, drop.color, 0.6)
+            this.stamp(col, row - 2, drop.color, 0.3)
         }
 
         for (let i = this.ripples.length - 1; i >= 0; i--) {
@@ -159,12 +163,19 @@ export default class RainStrategy extends AbstractStrategy {
         }
 
         if (this.boltX >= 0) {
-            for (let y = 0; y < this.height; y++) {
-                const x = Math.max(0, Math.min(this.width - 1, this.boltX + this.boltJitter[y]))
-                const decay = 1 - 0.5 * (y / this.height)
-                this.stamp(x, y, BOLT_COLOR, 0.8 * decay)
-                if (y > 0 && Math.random() < 0.35) {
-                    this.stamp(x, y - 1, BOLT_COLOR, 0.3 * decay)
+            this.boltLife -= dt
+            if (this.boltLife <= 0) {
+                this.boltX = -1
+            } else {
+                const boltFade = this.boltLife / BOLT_LIFE_S
+                for (let y = 0; y < this.height; y++) {
+                    const x = Math.max(0, Math.min(this.width - 1, this.boltX + this.boltJitter[y]))
+                    const decay = 1 - 0.5 * (y / this.height)
+                    this.stamp(x, y, BOLT_COLOR, 0.8 * decay * boltFade)
+                    if (y > 0 && this.boltJitter[y] !== this.boltJitter[y - 1]) {
+                        const forkX = Math.max(0, Math.min(this.width - 1, this.boltX + this.boltJitter[y - 1]))
+                        this.stamp(forkX, y, BOLT_COLOR, 0.3 * decay * boltFade)
+                    }
                 }
             }
         }
@@ -192,6 +203,7 @@ export default class RainStrategy extends AbstractStrategy {
 
     private strikeLightning(): void {
         this.flash = 1
+        this.boltLife = BOLT_LIFE_S
         this.boltX = 1 + Math.floor(Math.random() * (this.width - 2))
         this.boltJitter = []
         let offset = 0
@@ -208,9 +220,9 @@ export default class RainStrategy extends AbstractStrategy {
             return
         }
         const cell = this.grid[y * this.width + x]
-        cell[0] = Math.max(cell[0], Math.round(color[0] * intensity))
-        cell[1] = Math.max(cell[1], Math.round(color[1] * intensity))
-        cell[2] = Math.max(cell[2], Math.round(color[2] * intensity))
+        cell[0] = Math.max(cell[0], color[0] * intensity)
+        cell[1] = Math.max(cell[1], color[1] * intensity)
+        cell[2] = Math.max(cell[2], color[2] * intensity)
     }
 
     private render(rasterizer: Rasterizer): void {
