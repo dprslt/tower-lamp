@@ -43,6 +43,10 @@ the columns wrap around the cylinder.
 ## Branching / remote
 
 - Default branch is `main`. Remote: `https://github.com/dprslt/tower-lamp`.
+- **Stacking PRs**: when a change needs to be split into a chain of dependent
+  PRs, use `gh stack` to create and manage the stack (`gh stack init`, `gh stack
+  add`, `gh stack submit`), not ad-hoc branch chaining. See `gh stack --help`
+  (docs: https://gh.io/stacks).
 
 ## Commands
 
