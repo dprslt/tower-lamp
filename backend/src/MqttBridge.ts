@@ -198,6 +198,20 @@ export function parseActions(raw: string | undefined): Record<string, MqttAction
     return {}
 }
 
+export function sunsetGradientParams(): Record<string, any> {
+    return {
+        fillLinearGradientStartPoint: {x: 8, y: 21},
+        fillLinearGradientEndPoint: {x: 0, y: 0},
+        fillLinearGradientColorStops: [0, 'red', 1, 'gold'],
+    }
+}
+
+export const defaultMqttActions: Record<string, MqttActionConfig> = {
+    sunset: {strategy: 'color', params: sunsetGradientParams()},
+    fireworks: {strategy: 'fireworks', params: {}},
+    stop: {strategy: 'off', params: {}},
+}
+
 const DEFAULT_CONFIG_FILE = '/etc/lamp-backend/mqtt.conf'
 
 export function loadMqttSettings(file: string): Record<string, string> {
@@ -241,6 +255,7 @@ export function loadMqttConfig(configFile?: string): MqttBridgeConfig | null {
         return null
     }
     const port = Number(mqttSetting(settings, 'PORT', '1883'))
+    const actionsRaw = mqttSetting(settings, 'ACTIONS')
     return {
         host,
         ...(Number.isInteger(port) && port > 0 ? {port} : {}),
@@ -248,7 +263,7 @@ export function loadMqttConfig(configFile?: string): MqttBridgeConfig | null {
         password: mqttSetting(settings, 'PASS') || undefined,
         baseTopic: mqttSetting(settings, 'BASE_TOPIC', 'tower_lamp/light') || 'tower_lamp/light',
         discoveryPrefix: mqttSetting(settings, 'DISCOVERY_PREFIX', 'homeassistant') || 'homeassistant',
-        actions: parseActions(mqttSetting(settings, 'ACTIONS')),
+        actions: actionsRaw !== undefined ? parseActions(actionsRaw) : defaultMqttActions,
     }
 }
 

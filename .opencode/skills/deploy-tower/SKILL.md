@@ -64,8 +64,11 @@ MQTT_HOST=mqtt://broker.local
 MQTT_PORT=1883
 MQTT_USER=lamp
 MQTT_PASS=<from the broker user setup>
-MQTT_ACTIONS=/etc/lamp-backend/actions.json
 ```
+
+The HA action buttons (`sunset`, `fireworks`, `stop`) come from built-in
+backend defaults — no `MQTT_ACTIONS` needed. Set `MQTT_ACTIONS` only to
+override them (inline JSON, or a path to a JSON file; `{}` disables them).
 
 This file survives backend redeploys (`deploy-backend.sh` only overwrites
 `build/` + `package.json`). After creating/changing it:
