@@ -106,10 +106,13 @@ appears automatically in Home Assistant (MQTT discovery).
 
 ### Actions (buttons)
 
-Named strategies can be registered and exposed to HA as MQTT button entities,
-one per action, via discovery. The registry is a JSON object mapping an action
-id to a strategy + params — `MQTT_ACTIONS` holds the JSON inline or points at a
-JSON file (e.g. `/etc/lamp-backend/actions.json`):
+Named strategies can be exposed to HA as MQTT button entities, one per action,
+via discovery. A default registry is built in — `sunset` (the red→gold
+gradient, same as the startup animation), `fireworks`, `rain`, `spinning-dot`
+(a red dot spinning up the tower) and a `stop` button — so the buttons work
+out of the box. It can be replaced per-install with `MQTT_ACTIONS` (inline
+JSON, or a path to a JSON file with the same shape), mapping an action id to a
+strategy + params:
 
 ```json
 {
@@ -118,10 +121,10 @@ JSON file (e.g. `/etc/lamp-backend/actions.json`):
 }
 ```
 
-Each action publishes discovery to `<prefix>/button/tower_lamp/<id>/config`
-(command topic `<base>/action/<id>/set`, payload `press`) and shares the light's
-availability topic. New animation strategies added later only need a new
-registry entry.
+Set `MQTT_ACTIONS={}` to disable the default buttons entirely. Each action
+publishes discovery to `<prefix>/button/tower_lamp/<id>/config` (command topic
+`<base>/action/<id>/set`, payload `press`) and shares the light's availability
+topic. New animation strategies added later only need a new registry entry.
 
 ### Known limitations
 

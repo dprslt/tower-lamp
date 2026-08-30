@@ -9,6 +9,7 @@ import {
     buildActionDiscovery,
     buildLightDiscovery,
     colorFillFromCommand,
+    defaultMqttActions,
     lightAvailabilityTopic,
     lightCommandTopic,
     lightDiscoveryTopic,
@@ -20,6 +21,7 @@ import {
     parseLightCommand,
     resolveMqttOptions,
 } from '../MqttBridge'
+import CanvasStrategyFactory from '../CanvasStrategyFactory'
 
 const baseConfig = {
     host: 'broker.local',
@@ -126,6 +128,29 @@ test('parseActions returns an empty registry for garbage', () => {
     assert.deepEqual(parseActions(path.join(os.tmpdir(), 'definitely-missing-actions.json')), {})
 })
 
+test('the default actions registry maps sunset, fireworks and stop to registered strategies', () => {
+    const actions = defaultMqttActions
+    assert.ok(Object.keys(actions).length > 0, 'registry should not be empty')
+    const templates = Object.keys(new CanvasStrategyFactory({} as never).getTemplates())
+    for (const [actionId, action] of Object.entries(actions)) {
+        assert.ok(actionId.length > 0)
+        assert.ok(
+            templates.includes(action.strategy),
+            `action "${actionId}" references unregistered strategy "${action.strategy}"`
+        )
+    }
+})
+
+test('the default actions registry has the expected buttons', () => {
+    assert.deepEqual(Object.keys(defaultMqttActions), ['sunset', 'fireworks', 'rain', 'spinning-dot', 'stop'])
+    assert.equal(defaultMqttActions.sunset.strategy, 'color')
+    assert.deepEqual(defaultMqttActions.sunset.params.fillLinearGradientColorStops, [0, 'red', 1, 'gold'])
+    assert.equal(defaultMqttActions.fireworks.strategy, 'fireworks')
+    assert.equal(defaultMqttActions.rain.strategy, 'rain')
+    assert.equal(defaultMqttActions['spinning-dot'].strategy, 'spinning-dot')
+    assert.equal(defaultMqttActions.stop.strategy, 'off')
+})
+
 test('resolveMqttOptions builds a will with the availability topic', () => {
     const options = resolveMqttOptions(baseConfig)
     assert.equal(options.protocol, 'mqtt')
@@ -169,9 +194,21 @@ test('mqttConfigFromEnv applies defaults', () => {
         assert.equal(config?.port, 1883)
         assert.equal(config?.baseTopic, 'tower_lamp/light')
         assert.equal(config?.discoveryPrefix, 'homeassistant')
+        assert.deepEqual(config?.actions, defaultMqttActions)
+    } finally {
+        delete process.env.MQTT_HOST
+    }
+})
+
+test('mqttConfigFromEnv allows opting out of the default actions with an empty registry', () => {
+    process.env.MQTT_HOST = 'broker.local'
+    process.env.MQTT_ACTIONS = '{}'
+    try {
+        const config = loadMqttConfig()
         assert.deepEqual(config?.actions, {})
     } finally {
         delete process.env.MQTT_HOST
+        delete process.env.MQTT_ACTIONS
     }
 })
 

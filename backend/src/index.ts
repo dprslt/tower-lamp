@@ -12,6 +12,7 @@ import MqttBridge, {
     colorFillFromCommand,
     loadMqttConfig,
     MqttLightCommand,
+    sunsetGradientParams,
 } from "./MqttBridge";
 import {parseColor, RGB} from "./screen/Rasterizer";
 
@@ -187,11 +188,7 @@ io.on('connection', (socket) => {
 
 
 // Running the default animation
-const defaultParams = {
-    fillLinearGradientStartPoint: { x: screen.getCanvasSize().width, y: screen.getCanvasSize().height },
-    fillLinearGradientEndPoint: { x: 0, y: 0 },
-    fillLinearGradientColorStops: [0, 'red', 1, 'gold'],
-}
+const defaultParams = sunsetGradientParams()
 animation = new ColorStrategy(screen, defaultParams)
 animation.mount()
 currentStrategy = { name: 'color', params: defaultParams }
