@@ -12,6 +12,8 @@ export abstract class Screen {
     private readonly fadeCandy: FadeCandyConnection;
     socketFrontend: Server;
 
+    private onRefresh: (() => void) | null = null
+
 
     constructor(width: number, height: number, socketFrontend: Server, fadeCandy: FadeCandyConnection) {
         this.width = width
@@ -77,6 +79,10 @@ export abstract class Screen {
         }
     }
 
+    setOnRefresh(callback: (() => void) | null): void {
+        this.onRefresh = callback
+    }
+
     /**
      * Send the current screen to the Fadecandy.
      */
@@ -93,6 +99,7 @@ export abstract class Screen {
                 //console.log("Socket is not ready, "+this.socketFadeCandy.readyState)
             }
         }
+        this.onRefresh?.()
     }
 
 

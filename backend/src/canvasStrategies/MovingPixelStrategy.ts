@@ -12,10 +12,11 @@ export function columnAt(elapsedSeconds: number, speed: number, columns: number)
 export default class MovingPixelStrategy extends AbstractStrategy {
 
     private layer: CanvasLayer | null = null
-    private mountTime: number = 0
     private readonly color: RGB
     private readonly row: number
     private readonly speed: number
+    private readonly runs: number
+    private readonly sweepDuration: number
 
     public constructor(canvasScreen: CanvasScreen, params: any) {
         super(canvasScreen, params)
@@ -23,6 +24,8 @@ export default class MovingPixelStrategy extends AbstractStrategy {
         this.color = typeof params.color === 'string' ? parseColor(params.color) : [255, 0, 0]
         this.row = typeof params.row === 'number' ? Math.round(params.row) : Math.floor(this.canvasScreen.screenHeight / 2)
         this.speed = typeof params.speed === 'number' ? params.speed : 2
+        this.runs = typeof params.runs === 'number' ? params.runs : 0
+        this.sweepDuration = this.canvasScreen.screenWidth / this.speed
 
         this.layer = {
             draw: (rasterizer: Rasterizer) => {
@@ -35,7 +38,7 @@ export default class MovingPixelStrategy extends AbstractStrategy {
     }
 
     mount() {
-        this.mountTime = Date.now()
+        this.markMounted()
         this.canvasScreen.hidePixels()
         if (this.layer) {
             this.canvasScreen.registerLayer(this.layer)
@@ -47,5 +50,12 @@ export default class MovingPixelStrategy extends AbstractStrategy {
             this.canvasScreen.unregisterLayer(this.layer)
             this.layer = null
         }
+    }
+
+    isDone(): boolean {
+        if (this.runs > 0 && (Date.now() - this.mountTime) / 1000 >= this.runs * this.sweepDuration) {
+            return true
+        }
+        return super.isDone()
     }
 }

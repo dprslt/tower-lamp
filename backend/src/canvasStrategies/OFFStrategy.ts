@@ -9,6 +9,7 @@ export default class OFFStrategy extends AbstractStrategy {
     }
 
     mount(){
+        this.markMounted()
         this.canvasScreen.erase()
         this.canvasScreen.showPixels()
         setTimeout(() => {

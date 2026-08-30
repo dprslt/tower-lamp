@@ -68,6 +68,20 @@ export const animations = [
 ]
 
 
+const fireworks = animations.find((a) => a.strategyName === 'fireworks')
+
+export const oneShots = [
+    {
+        ...fireworks,
+        name: "Fireworks — once",
+        params: {
+            ...fireworks.params,
+            bursts: 1
+        }
+    }
+]
+
+
 export const images = [
     {
         strategyName: 'image',

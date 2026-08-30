@@ -46,9 +46,11 @@ export default class FireworksStrategy extends AbstractStrategy {
 
     private readonly launchIntervalMs: number
     private readonly brightness: number
+    private readonly bursts: number
 
     private lastTick = 0
     private nextLaunchAt = 0
+    private launchCount = 0
     private layer: CanvasLayer | null = null
 
     public constructor(canvasScreen: CanvasScreen, params: any) {
@@ -60,6 +62,7 @@ export default class FireworksStrategy extends AbstractStrategy {
         this.zoom = size.width / this.width
         this.launchIntervalMs = params.launchIntervalMs ?? 700
         this.brightness = params.brightness ?? 1
+        this.bursts = typeof params.bursts === 'number' ? params.bursts : 0
 
         this.grid = []
         for (let i = 0; i < this.width * this.height; i++) {
@@ -80,6 +83,8 @@ export default class FireworksStrategy extends AbstractStrategy {
     mount(): void {
         this.lastTick = 0
         this.nextLaunchAt = 0
+        this.launchCount = 0
+        this.markMounted()
         if (this.layer) {
             this.canvasScreen.registerLayer(this.layer)
         }
@@ -92,6 +97,16 @@ export default class FireworksStrategy extends AbstractStrategy {
         }
     }
 
+    isDone(): boolean {
+        if (this.bursts > 0
+            && this.launchCount >= this.bursts
+            && this.rockets.length === 0
+            && this.sparks.length === 0) {
+            return true
+        }
+        return super.isDone()
+    }
+
     private tick(dt: number): void {
         const fade = Math.pow(0.5, dt / FADE_HALF_LIFE_S)
         for (const cell of this.grid) {
@@ -101,7 +116,7 @@ export default class FireworksStrategy extends AbstractStrategy {
         }
 
         const now = Date.now()
-        if (now >= this.nextLaunchAt && this.rockets.length < 2) {
+        if ((this.bursts === 0 || this.launchCount < this.bursts) && now >= this.nextLaunchAt && this.rockets.length < 2) {
             this.launchRocket()
             this.nextLaunchAt = now + this.launchIntervalMs * (0.6 + Math.random() * 0.8)
         }
@@ -131,6 +146,7 @@ export default class FireworksStrategy extends AbstractStrategy {
     }
 
     private launchRocket(): void {
+        this.launchCount++
         const color = PALETTE[Math.floor(Math.random() * PALETTE.length)]
         this.rockets.push({
             x: 1.5 + Math.random() * (this.width - 3),

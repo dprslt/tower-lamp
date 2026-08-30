@@ -7,7 +7,7 @@ import ScreenFetcher from '../components/screen/screen-fetcher'
 import io from 'socket.io-client'
 import {Box, Container, Grid, Heading} from "@chakra-ui/react"
 import HeaderBar from "../components/header/HeaderBar"
-import {colors, images, animations} from "../components/strategies/strategies-data"
+import {colors, images, animations, oneShots} from "../components/strategies/strategies-data"
 import BACKEND_WS_URL from "../backend-url"
 import './screen-page.scss'
 
@@ -114,6 +114,7 @@ export default class NewScreenPage extends Component {
                     <Box display={{base: showScreenOnMobile ? 'none' : 'block', lg: 'block'}}>
                         <StrategySection title="Couleurs" strategies={colors} playHandler={this.playHandler} selectedStrategy={this.state.currentStrategy}/>
                         <StrategySection title="Animations" strategies={animations} playHandler={this.playHandler} selectedStrategy={this.state.currentStrategy}/>
+                        <StrategySection title="One-shot" strategies={oneShots} playHandler={this.playHandler} selectedStrategy={this.state.currentStrategy}/>
                         <StrategySection title="Images" strategies={images} playHandler={this.playHandler} selectedStrategy={this.state.currentStrategy}/>
                     </Box>
 

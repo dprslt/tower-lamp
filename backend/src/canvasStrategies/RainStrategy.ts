@@ -82,6 +82,7 @@ export default class RainStrategy extends AbstractStrategy {
     }
 
     mount(): void {
+        this.markMounted()
         this.lastTick = 0
         this.nextDropAt = 0
         this.nextLightningAt = Date.now() + this.lightningIntervalMs

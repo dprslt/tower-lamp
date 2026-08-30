@@ -21,7 +21,6 @@ export default class ImageStrategy extends AbstractStrategy {
     private layer: CanvasLayer | null = null
     private image: DecodedImage | null = null
     private readonly duration: number
-    private mountTime: number = 0
 
     public constructor(canvasScreen: CanvasScreen, params: any) {
         super(canvasScreen, params)
@@ -55,7 +54,7 @@ export default class ImageStrategy extends AbstractStrategy {
     }
 
     mount() {
-        this.mountTime = Date.now()
+        this.markMounted()
         this.canvasScreen.hidePixels()
         if (this.layer) {
             this.canvasScreen.registerLayer(this.layer)

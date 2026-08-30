@@ -40,6 +40,7 @@ export default class ColorStrategy extends AbstractStrategy{
     }
 
     mount(){
+        this.markMounted()
         this.canvasScreen.hidePixels()
         if (this.layer) {
             this.canvasScreen.registerLayer(this.layer)
