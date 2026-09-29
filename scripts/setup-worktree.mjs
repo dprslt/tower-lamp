@@ -43,6 +43,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 // Entries may be top-level paths or nested children of a partially-tracked dir;
 // the relative path is preserved in the destination worktree.
 const CONFIG_PATHS = [
+  'opencode.json',
   '.opencode/package.json',
   '.opencode/package-lock.json',
   '.opencode/node_modules',

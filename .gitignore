@@ -2,5 +2,6 @@
 
 node_modules/
 .gitignore
+opencode.json
 build/
 backend/fake-fc-out/
