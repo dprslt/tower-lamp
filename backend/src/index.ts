@@ -5,7 +5,6 @@ import express from 'express'
 
 import {CanvasScreen} from "./screen/CanvasScreen";
 import FadeCandyConnection from "./FadeCandyConnection";
-import ColorStrategy from "./canvasStrategies/ColorStrategy";
 import CanvasStrategyFactory from "./CanvasStrategyFactory";
 import AbstractStrategy from "./canvasStrategies/AbstractStrategy";
 import MqttBridge, {
@@ -14,7 +13,7 @@ import MqttBridge, {
     MqttLightCommand,
     sunsetGradientParams,
 } from "./MqttBridge";
-import {parseColor, RGB} from "./screen/Rasterizer";
+import {strategyLightState} from "./StrategyLightState";
 
 
 console.log("Server starting")
@@ -45,30 +44,11 @@ const factory = new CanvasStrategyFactory(screen)
 let animation : AbstractStrategy | null = null
 let currentStrategy : { name: string, params: any } | null = null
 
-function solidFillFromParams(params: any): RGB | null {
-    if (typeof params?.fill === 'string') {
-        return parseColor(params.fill)
-    }
-    if (Array.isArray(params?.fill)) {
-        return params.fill as RGB
-    }
-    return null
-}
-
 function mirrorStrategyToMqtt(name: string, params: any): void {
     if (!mqttBridge) {
         return
     }
-    if (name === 'off') {
-        mqttBridge.publishState({state: 'OFF', color: {r: 0, g: 0, b: 0}, brightness: 0})
-        return
-    }
-    if (name === 'color') {
-        const rgb = solidFillFromParams(params)
-        if (rgb) {
-            mqttBridge.publishState({state: 'ON', color: {r: rgb[0], g: rgb[1], b: rgb[2]}, brightness: 255})
-        }
-    }
+    mqttBridge.publishState(strategyLightState(name, params))
 }
 
 function selectStrategy(name: string, params: any, mirrorToMqtt: boolean = true): boolean {
@@ -107,24 +87,15 @@ screen.setOnRefresh(() => {
 })
 
 function handleMqttCommand(command: MqttLightCommand): void {
-    if (!mqttBridge) {
-        return
-    }
     if (command.state === 'OFF') {
-        selectStrategy('off', {}, false)
-        mqttBridge.publishState({state: 'OFF', color: {r: 0, g: 0, b: 0}, brightness: 0})
+        selectStrategy('off', {})
         return
     }
     const fill = colorFillFromCommand(command)
     if (!fill) {
         return
     }
-    selectStrategy('color', {fill}, false)
-    mqttBridge.publishState({
-        state: 'ON',
-        color: command.color ?? {r: 255, g: 255, b: 255},
-        brightness: command.brightness ?? 255,
-    })
+    selectStrategy('color', {fill})
 }
 
 const mqttConfig = loadMqttConfig()
@@ -188,9 +159,6 @@ io.on('connection', (socket) => {
 
 
 // Running the default animation
-const defaultParams = sunsetGradientParams()
-animation = new ColorStrategy(screen, defaultParams)
-animation.mount()
-currentStrategy = { name: 'color', params: defaultParams }
+selectStrategy('color', sunsetGradientParams())
 
 screen.start()

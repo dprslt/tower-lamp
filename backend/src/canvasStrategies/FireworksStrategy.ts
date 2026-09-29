@@ -20,7 +20,7 @@ interface Spark {
     color: RGB
 }
 
-const PALETTE: RGB[] = [
+export const PALETTE: RGB[] = [
     [255, 60, 60],
     [255, 170, 40],
     [255, 240, 80],

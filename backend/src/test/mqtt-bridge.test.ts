@@ -11,6 +11,7 @@ import {
     colorFillFromCommand,
     defaultMqttActions,
     lightAvailabilityTopic,
+    lightAttributesTopic,
     lightCommandTopic,
     lightDiscoveryTopic,
     lightStateTopic,
@@ -21,6 +22,15 @@ import {
     parseLightCommand,
     resolveMqttOptions,
 } from '../MqttBridge'
+import {
+    STRATEGY_AMBIENT_COLORS,
+    averageColor,
+    colorFromFillParams,
+    strategyAmbientColor,
+    strategyLightState,
+} from '../StrategyLightState'
+import {PALETTE as FIREWORKS_PALETTE} from '../canvasStrategies/FireworksStrategy'
+import {PALETTE as RAIN_PALETTE} from '../canvasStrategies/RainStrategy'
 import CanvasStrategyFactory from '../CanvasStrategyFactory'
 
 const baseConfig = {
@@ -34,6 +44,7 @@ test('topic helpers follow the issue layout', () => {
     assert.equal(lightCommandTopic('tower_lamp/light'), 'tower_lamp/light/set')
     assert.equal(lightStateTopic('tower_lamp/light'), 'tower_lamp/light/state')
     assert.equal(lightAvailabilityTopic('tower_lamp/light'), 'tower_lamp/light/availability')
+    assert.equal(lightAttributesTopic('tower_lamp/light'), 'tower_lamp/light/attributes')
     assert.equal(actionCommandTopic('tower_lamp/light', 'sunset'), 'tower_lamp/light/action/sunset/set')
     assert.equal(lightDiscoveryTopic('homeassistant'), 'homeassistant/light/tower_lamp/config')
     assert.equal(actionDiscoveryTopic('homeassistant', 'sunset'), 'homeassistant/button/tower_lamp/sunset/config')
@@ -50,6 +61,7 @@ test('light discovery payload exposes a json-schema rgb light', () => {
     assert.equal(discovery.state_topic, 'tower_lamp/light/state')
     assert.equal(discovery.command_topic, 'tower_lamp/light/set')
     assert.equal(discovery.availability_topic, 'tower_lamp/light/availability')
+    assert.equal(discovery.json_attributes_topic, 'tower_lamp/light/attributes')
     assert.equal(discovery.payload_available, 'online')
     assert.equal(discovery.payload_not_available, 'offline')
     assert.deepEqual(discovery.device.identifiers, ['tower_lamp'])
@@ -62,6 +74,46 @@ test('action discovery payload exposes a button per action', () => {
     assert.equal(discovery.payload_press, 'press')
     assert.equal(discovery.availability_topic, 'tower_lamp/light/availability')
     assert.deepEqual(discovery.device.identifiers, ['tower_lamp'])
+})
+
+test('every registered strategy has an ambient color', () => {
+    const templates = Object.keys(new CanvasStrategyFactory({} as never).getTemplates())
+    for (const id of templates) {
+        assert.ok(STRATEGY_AMBIENT_COLORS[id], `missing ambient color for "${id}"`)
+    }
+})
+
+test('strategyLightState reports OFF for the off strategy', () => {
+    assert.deepEqual(strategyLightState('off', {}), {
+        state: 'OFF',
+        color: {r: 0, g: 0, b: 0},
+        brightness: 0,
+        attributes: {mode: 'off'},
+    })
+})
+
+test('strategyLightState turns the light ON for animations with their ambient color and mode', () => {
+    const rainColor = averageColor(RAIN_PALETTE)
+    assert.deepEqual(strategyLightState('rain', {}), {
+        state: 'ON',
+        color: {r: rainColor[0], g: rainColor[1], b: rainColor[2]},
+        brightness: 255,
+        attributes: {mode: 'rain'},
+    })
+    assert.deepEqual(strategyAmbientColor('fireworks', {}), averageColor(FIREWORKS_PALETTE))
+    assert.deepEqual(strategyAmbientColor('image', {}), [255, 244, 224])
+})
+
+test('colorFromFillParams derives a color from solid fills and gradient stop averages', () => {
+    assert.deepEqual(colorFromFillParams({fill: '#ff0000'}), [255, 0, 0])
+    assert.deepEqual(colorFromFillParams({fill: [10, 20, 30]}), [10, 20, 30])
+    assert.deepEqual(colorFromFillParams({fillLinearGradientColorStops: [0, 'red', 1, 'gold']}), [255, 108, 0])
+})
+
+test('strategyAmbientColor honors explicit params color for dot strategies', () => {
+    assert.deepEqual(strategyAmbientColor('spinning-dot', {color: '#00ff00'}), [0, 255, 0])
+    assert.deepEqual(strategyAmbientColor('moving-pixel', {color: '#0000ff'}), [0, 0, 255])
+    assert.deepEqual(strategyAmbientColor('spinning-dot', {}), [255, 0, 0])
 })
 
 test('parseLightCommand accepts ON with color and brightness', () => {
@@ -142,11 +194,12 @@ test('the default actions registry maps sunset, fireworks and stop to registered
 })
 
 test('the default actions registry has the expected buttons', () => {
-    assert.deepEqual(Object.keys(defaultMqttActions), ['sunset', 'fireworks', 'rain', 'spinning-dot', 'stop'])
+    assert.deepEqual(Object.keys(defaultMqttActions), ['sunset', 'fireworks', 'rain', 'sleepy-rain', 'spinning-dot', 'stop'])
     assert.equal(defaultMqttActions.sunset.strategy, 'color')
     assert.deepEqual(defaultMqttActions.sunset.params.fillLinearGradientColorStops, [0, 'red', 1, 'gold'])
     assert.equal(defaultMqttActions.fireworks.strategy, 'fireworks')
     assert.equal(defaultMqttActions.rain.strategy, 'rain')
+    assert.equal(defaultMqttActions['sleepy-rain'].strategy, 'sleepy-rain')
     assert.equal(defaultMqttActions['spinning-dot'].strategy, 'spinning-dot')
     assert.equal(defaultMqttActions.stop.strategy, 'off')
 })

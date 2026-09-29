@@ -91,7 +91,8 @@ overridden with `MQTT_CONFIG_FILE`.
 
 Topics: `<base>/set` (commands), `<base>/state` (retained state),
 `<base>/availability` (online/offline, plus LWT so a crash marks the entity
-unavailable), discovery `<prefix>/light/tower_lamp/config`.
+unavailable), `<base>/attributes` (retained JSON attributes, e.g. the active
+mode), discovery `<prefix>/light/tower_lamp/config`.
 
 Commands on `<base>/set`:
 
@@ -101,15 +102,20 @@ Commands on `<base>/set`:
 ```
 
 Web UI strategy changes are mirrored back to `<base>/state`, so the HA entity
-always tracks what the lamp is actually showing. The entity `light.tower_lamp`
+always tracks what the lamp is actually showing. Animations and images have no
+single color of their own, so they publish a per-strategy **ambient color**
+(average of the animation palette, or the fill for `color`) and expose the
+active strategy in the `<base>/attributes` JSON (`{"mode": "rain", ...}`),
+which Home Assistant shows as entity attributes. The entity `light.tower_lamp`
 appears automatically in Home Assistant (MQTT discovery).
 
 ### Actions (buttons)
 
 Named strategies can be exposed to HA as MQTT button entities, one per action,
 via discovery. A default registry is built in — `sunset` (the red→gold
-gradient, same as the startup animation), `fireworks`, `rain`, `spinning-dot`
-(a red dot spinning up the tower) and a `stop` button — so the buttons work
+gradient, same as the startup animation), `fireworks`, `rain`, `sleepy-rain`
+(a slow, dim, drowsy drizzle), `spinning-dot` (a red dot spinning up the
+tower) and a `stop` button — so the buttons work
 out of the box. It can be replaced per-install with `MQTT_ACTIONS` (inline
 JSON, or a path to a JSON file with the same shape), mapping an action id to a
 strategy + params:
@@ -128,8 +134,8 @@ topic. New animation strategies added later only need a new registry entry.
 
 ### Known limitations
 
-- The image strategy is not representable in a HA light entity: while an image
-  animation runs, the last published light state is kept.
+- Animations and images are approximated in the HA light entity by a fixed
+  ambient color (the active strategy is available via the `mode` attribute).
 - Strategies have no brightness concept: brightness is implemented as RGB
   scaling of the solid fill.
 

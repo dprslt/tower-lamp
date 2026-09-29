@@ -7,6 +7,7 @@ export interface MqttLightState {
     state: 'ON' | 'OFF'
     color: {r: number, g: number, b: number}
     brightness: number
+    attributes?: Record<string, any>
 }
 
 export interface MqttLightCommand {
@@ -48,6 +49,10 @@ export function lightAvailabilityTopic(baseTopic: string): string {
     return `${baseTopic}/availability`
 }
 
+export function lightAttributesTopic(baseTopic: string): string {
+    return `${baseTopic}/attributes`
+}
+
 export function lightDiscoveryTopic(discoveryPrefix: string): string {
     return `${discoveryPrefix}/light/tower_lamp/config`
 }
@@ -71,6 +76,7 @@ export function buildLightDiscovery(config: MqttBridgeConfig): Record<string, an
         state_topic: lightStateTopic(config.baseTopic),
         command_topic: lightCommandTopic(config.baseTopic),
         availability_topic: lightAvailabilityTopic(config.baseTopic),
+        json_attributes_topic: lightAttributesTopic(config.baseTopic),
         payload_available: 'online',
         payload_not_available: 'offline',
         device: {
@@ -210,6 +216,7 @@ export const defaultMqttActions: Record<string, MqttActionConfig> = {
     sunset: {strategy: 'color', params: sunsetGradientParams()},
     fireworks: {strategy: 'fireworks', params: {}},
     rain: {strategy: 'rain', params: {}},
+    'sleepy-rain': {strategy: 'sleepy-rain', params: {}},
     'spinning-dot': {strategy: 'spinning-dot', params: {}},
     stop: {strategy: 'off', params: {}},
 }
@@ -320,6 +327,13 @@ export default class MqttBridge {
             payload.color_mode = 'rgb'
         }
         this.client.publish(lightStateTopic(this.config.baseTopic), JSON.stringify(payload), {retain: true})
+        if (state.attributes !== undefined) {
+            this.client.publish(
+                lightAttributesTopic(this.config.baseTopic),
+                JSON.stringify(state.attributes),
+                {retain: true}
+            )
+        }
     }
 
     private handleConnect(): void {
