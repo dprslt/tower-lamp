@@ -40,5 +40,7 @@ How to avoid it next time, or what remains to be done.
 
 ## Index
 
+- [2026-09-29 Sleepy Rain variant](2026-09-29-sleepy-rain-variant.md) — second, slower/bluer rain preset; RainConfig + burst/pause density tuning (backend RainStrategy).
+- [2026-09-29 FadeCandy via lamp.local](2026-09-29-fadecandy-lamp-local-connect.md) — long-running backend looping on `ws://lamp.local:7890`; IPv4 workaround (backend/tooling).
 - [2026-08-30 Rain strategy artifacts](2026-08-30-rain-strategy-artifacts.md) — stuck-pixel residue, lightning blinking, steppy drops (backend RainStrategy).
 - [2026-08-27 Pi OS migration](2026-08-27-pi-migration.md) — stretch → trixie, native systemd deploy, FadeCandy bring-up on a Pi Zero W (armv6).

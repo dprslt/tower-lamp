@@ -17,7 +17,42 @@ interface Ripple {
     maxLife: number
 }
 
-const PALETTE: RGB[] = [
+// Drops arrive in short bursts separated by quiet pauses instead of a
+// continuous shower. When omitted, spawning is the classic steady stream.
+export interface ShowerConfig {
+    burstMin: number
+    burstMax: number
+    spacingMs: number
+    pauseMinMs: number
+    pauseMaxMs: number
+}
+
+export interface RainConfig {
+    palette: RGB[]
+    boltColor: RGB
+    fadeHalfLifeS: number
+    flashDurationS: number
+    boltLifeS: number
+    rippleLifeS: number
+    dropIntervalMs: number
+    lightningIntervalMs: number
+    maxDrops: number
+    dropSpeedMin: number
+    dropSpeedRange: number
+    driftSpread: number
+    flashBoost: number
+    boltIntensity: number
+    boltForkIntensity: number
+    rippleColor: RGB
+    rippleIntensity: number
+    rippleSpeed: number
+    tailNear: number
+    tailFar: number
+    brightness: number
+    shower?: ShowerConfig
+}
+
+export const PALETTE: RGB[] = [
     [70, 120, 255],
     [90, 160, 255],
     [110, 90, 255],
@@ -26,29 +61,47 @@ const PALETTE: RGB[] = [
     [60, 90, 220],
 ]
 
-const BOLT_COLOR: RGB = [150, 120, 255]
-
-const FADE_HALF_LIFE_S = 0.08
-const FLASH_DURATION_S = 0.45
-const BOLT_LIFE_S = 0.12
-const RIPPLE_LIFE_S = 0.55
+// The original energetic thunderstorm: fast violet drops, sharp frequent bolts.
+export const STORM_RAIN: RainConfig = {
+    palette: PALETTE,
+    boltColor: [150, 120, 255],
+    fadeHalfLifeS: 0.08,
+    flashDurationS: 0.45,
+    boltLifeS: 0.12,
+    rippleLifeS: 0.55,
+    dropIntervalMs: 110,
+    lightningIntervalMs: 8000,
+    maxDrops: 14,
+    dropSpeedMin: 14,
+    dropSpeedRange: 10,
+    driftSpread: 1,
+    flashBoost: 0.35,
+    boltIntensity: 0.8,
+    boltForkIntensity: 0.3,
+    rippleColor: [130, 110, 255],
+    rippleIntensity: 0.85,
+    rippleSpeed: 3.5,
+    tailNear: 0.6,
+    tailFar: 0.3,
+    brightness: 1,
+}
 
 export default class RainStrategy extends AbstractStrategy {
 
-    private readonly width: number
-    private readonly height: number
-    private readonly zoom: number
+    protected readonly width: number
+    protected readonly height: number
+    protected readonly config: RainConfig
 
+    private readonly zoom: number
     private readonly grid: RGB[]
     private readonly drops: Drop[] = []
     private readonly ripples: Ripple[] = []
 
-    private readonly dropIntervalMs: number
-    private readonly lightningIntervalMs: number
     private readonly brightness: number
 
     private lastTick = 0
     private nextDropAt = 0
+    private burstRemaining = 0
     private nextLightningAt = 0
     private flash = 0
     private boltX = -1
@@ -56,16 +109,19 @@ export default class RainStrategy extends AbstractStrategy {
     private boltJitter: number[] = []
     private layer: CanvasLayer | null = null
 
-    public constructor(canvasScreen: CanvasScreen, params: any) {
+    public constructor(canvasScreen: CanvasScreen, params: any, config: RainConfig = STORM_RAIN) {
         super(canvasScreen, params)
 
         const size = canvasScreen.getCanvasSize()
         this.width = 8
         this.height = 21
         this.zoom = size.width / this.width
-        this.dropIntervalMs = params.dropIntervalMs ?? 110
-        this.lightningIntervalMs = params.lightningIntervalMs ?? 8000
-        this.brightness = params.brightness ?? 1
+        this.config = {
+            ...config,
+            dropIntervalMs: params.dropIntervalMs ?? config.dropIntervalMs,
+            lightningIntervalMs: params.lightningIntervalMs ?? config.lightningIntervalMs,
+        }
+        this.brightness = params.brightness ?? config.brightness
 
         this.grid = []
         for (let i = 0; i < this.width * this.height; i++) {
@@ -87,7 +143,8 @@ export default class RainStrategy extends AbstractStrategy {
         this.markMounted()
         this.lastTick = 0
         this.nextDropAt = 0
-        this.nextLightningAt = Date.now() + this.lightningIntervalMs
+        this.burstRemaining = 0
+        this.nextLightningAt = Date.now() + this.config.lightningIntervalMs
         this.flash = 0
         this.boltX = -1
         this.boltLife = 0
@@ -106,7 +163,8 @@ export default class RainStrategy extends AbstractStrategy {
     }
 
     private tick(dt: number): void {
-        const fade = Math.pow(0.5, dt / FADE_HALF_LIFE_S)
+        const config = this.config
+        const fade = Math.pow(0.5, dt / config.fadeHalfLifeS)
         for (const cell of this.grid) {
             cell[0] *= fade
             cell[1] *= fade
@@ -114,18 +172,29 @@ export default class RainStrategy extends AbstractStrategy {
         }
 
         if (this.flash > 0) {
-            this.flash = Math.max(0, this.flash - dt / FLASH_DURATION_S)
+            this.flash = Math.max(0, this.flash - dt / config.flashDurationS)
         }
 
         const now = Date.now()
-        if (now >= this.nextDropAt && this.drops.length < 14) {
+        if (now >= this.nextDropAt && this.drops.length < config.maxDrops) {
             this.spawnDrop()
-            this.nextDropAt = now + this.dropIntervalMs * (0.5 + Math.random() * 1)
+            const shower = config.shower
+            if (shower) {
+                if (this.burstRemaining <= 0) {
+                    this.burstRemaining = shower.burstMin + Math.floor(Math.random() * (shower.burstMax - shower.burstMin + 1))
+                }
+                this.burstRemaining--
+                this.nextDropAt = this.burstRemaining > 0
+                    ? now + shower.spacingMs
+                    : now + shower.pauseMinMs + Math.random() * (shower.pauseMaxMs - shower.pauseMinMs)
+            } else {
+                this.nextDropAt = now + config.dropIntervalMs * (0.5 + Math.random() * 1)
+            }
         }
 
         if (now >= this.nextLightningAt) {
             this.strikeLightning()
-            this.nextLightningAt = now + this.lightningIntervalMs * (0.6 + Math.random() * 0.8)
+            this.nextLightningAt = now + config.lightningIntervalMs * (0.6 + Math.random() * 0.8)
         }
 
         for (let i = this.drops.length - 1; i >= 0; i--) {
@@ -142,8 +211,8 @@ export default class RainStrategy extends AbstractStrategy {
             const col = Math.round(drop.x)
             this.stamp(col, row, drop.color, 1)
             this.stamp(col, row + 1, drop.color, frac)
-            this.stamp(col, row - 1, drop.color, 0.6)
-            this.stamp(col, row - 2, drop.color, 0.3)
+            this.stamp(col, row - 1, drop.color, config.tailNear)
+            this.stamp(col, row - 2, drop.color, config.tailFar)
         }
 
         for (let i = this.ripples.length - 1; i >= 0; i--) {
@@ -153,12 +222,12 @@ export default class RainStrategy extends AbstractStrategy {
                 this.ripples.splice(i, 1)
                 continue
             }
-            ripple.halfWidth += 3.5 * dt
-            const intensity = Math.max(0, ripple.life / ripple.maxLife) * 0.85
+            ripple.halfWidth += config.rippleSpeed * dt
+            const intensity = Math.max(0, ripple.life / ripple.maxLife) * config.rippleIntensity
             const x0 = Math.max(0, Math.round(ripple.x - ripple.halfWidth))
             const x1 = Math.min(this.width - 1, Math.round(ripple.x + ripple.halfWidth))
             for (let x = x0; x <= x1; x++) {
-                this.stamp(x, this.height - 1, [130, 110, 255], intensity)
+                this.stamp(x, this.height - 1, config.rippleColor, intensity)
             }
         }
 
@@ -167,14 +236,14 @@ export default class RainStrategy extends AbstractStrategy {
             if (this.boltLife <= 0) {
                 this.boltX = -1
             } else {
-                const boltFade = this.boltLife / BOLT_LIFE_S
+                const boltFade = this.boltLife / config.boltLifeS
                 for (let y = 0; y < this.height; y++) {
                     const x = Math.max(0, Math.min(this.width - 1, this.boltX + this.boltJitter[y]))
                     const decay = 1 - 0.5 * (y / this.height)
-                    this.stamp(x, y, BOLT_COLOR, 0.8 * decay * boltFade)
+                    this.stamp(x, y, config.boltColor, config.boltIntensity * decay * boltFade)
                     if (y > 0 && this.boltJitter[y] !== this.boltJitter[y - 1]) {
                         const forkX = Math.max(0, Math.min(this.width - 1, this.boltX + this.boltJitter[y - 1]))
-                        this.stamp(forkX, y, BOLT_COLOR, 0.3 * decay * boltFade)
+                        this.stamp(forkX, y, config.boltColor, config.boltForkIntensity * decay * boltFade)
                     }
                 }
             }
@@ -182,12 +251,13 @@ export default class RainStrategy extends AbstractStrategy {
     }
 
     private spawnDrop(): void {
-        const color = PALETTE[Math.floor(Math.random() * PALETTE.length)]
+        const config = this.config
+        const color = config.palette[Math.floor(Math.random() * config.palette.length)]
         this.drops.push({
             x: Math.random() * (this.width - 1),
             y: -1,
-            vy: 14 + Math.random() * 10,
-            drift: -0.5 + Math.random() * 1,
+            vy: config.dropSpeedMin + Math.random() * config.dropSpeedRange,
+            drift: (Math.random() - 0.5) * config.driftSpread,
             color,
         })
     }
@@ -196,14 +266,14 @@ export default class RainStrategy extends AbstractStrategy {
         this.ripples.push({
             x,
             halfWidth: 0.5,
-            life: RIPPLE_LIFE_S,
-            maxLife: RIPPLE_LIFE_S,
+            life: this.config.rippleLifeS,
+            maxLife: this.config.rippleLifeS,
         })
     }
 
     private strikeLightning(): void {
         this.flash = 1
-        this.boltLife = BOLT_LIFE_S
+        this.boltLife = this.config.boltLifeS
         this.boltX = 1 + Math.floor(Math.random() * (this.width - 2))
         this.boltJitter = []
         let offset = 0
@@ -226,7 +296,7 @@ export default class RainStrategy extends AbstractStrategy {
     }
 
     private render(rasterizer: Rasterizer): void {
-        const boost = 1 + this.flash * 0.35
+        const boost = 1 + this.flash * this.config.flashBoost
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 const cell = this.grid[y * this.width + x]

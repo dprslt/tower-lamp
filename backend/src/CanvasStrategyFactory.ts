@@ -4,6 +4,7 @@ import OFFStrategy from "./canvasStrategies/OFFStrategy";
 import ImageStrategy from "./canvasStrategies/ImageStrategy";
 import FireworksStrategy from "./canvasStrategies/FireworksStrategy";
 import RainStrategy from "./canvasStrategies/RainStrategy";
+import SleepyRainStrategy from "./canvasStrategies/SleepyRainStrategy";
 import MovingPixelStrategy from "./canvasStrategies/MovingPixelStrategy";
 import SpinningDotStrategy from "./canvasStrategies/SpinningDotStrategy";
 import {CanvasScreen} from "./screen/CanvasScreen";
@@ -20,6 +21,7 @@ const templates: { [id: string] :  Constructor<AbstractStrategy>}   = {
     'image': ImageStrategy,
     'fireworks': FireworksStrategy,
     'rain': RainStrategy,
+    'sleepy-rain': SleepyRainStrategy,
     'moving-pixel': MovingPixelStrategy,
     'spinning-dot': SpinningDotStrategy,
 }
