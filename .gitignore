@@ -5,3 +5,4 @@ node_modules/
 opencode.json
 build/
 backend/fake-fc-out/
+.pio/
