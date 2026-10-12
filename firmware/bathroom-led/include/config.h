@@ -1,0 +1,37 @@
+#pragma once
+
+#define FW_NAME "bathroom-led"
+#define FW_VERSION "1.0.0"
+
+#define LED_COUNT 90
+
+#define LED_METHOD_UART_GPIO2 1
+
+#define FRAME_MS 20
+#define ATTRIBUTES_MS 10000
+
+#define CPU_FREQ_MHZ 80
+#define WIFI_TX_POWER_DBM 17.0
+
+#define COLOR_FADE_MS 700
+#define COLOR_FADE_SOFTNESS 8
+#define BRIGHTNESS_FADE_MS 400
+
+#define DEFAULT_DEVICE_ID "bathroom_led"
+#define DEFAULT_DISCOVERY_PREFIX "homeassistant"
+#define DEFAULT_BASE_TOPIC "bathroom_led/light"
+
+#define DEFAULT_BRIGHTNESS 180
+#define DEFAULT_COLOR_R 255
+#define DEFAULT_COLOR_G 160
+#define DEFAULT_COLOR_B 210
+
+#define DEFAULT_POWER_ON 0
+#define BOOT_SWEEP 1
+
+#define LED_CURRENT_LIMIT_MA 5000
+#define LED_MILLIAMPS_PER_LED 60
+
+#define MQTT_RECONNECT_MS 5000
+#define STATE_REPUBLISH_MS 30000
+#define CONFIG_PORTAL_TIMEOUT_S 300

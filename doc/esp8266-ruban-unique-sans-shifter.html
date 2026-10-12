@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESP8266 → ruban WS2812B 5 V : câblage sans 74HCT245</title>
+<style>
+  :root {
+    --red:#d33333; --gnd:#111111; --data:#2266dd; --ok:#338833;
+    --muted:#555555; --card:#ffffff; --line:#e2e2e2; --diode:#8a5a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 20px 60px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #111; background: #f6f7f9; line-height: 1.5;
+  }
+  main { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 22px; font-size: 15px; }
+  .badge {
+    display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; color: #7a3d00; background: #fff3e0;
+    border: 1px solid #ffcc80; border-radius: 999px; padding: 2px 10px; vertical-align: middle;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; margin: 18px 0; box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  }
+  .card h2 { font-size: 18px; margin: 0 0 12px; }
+  .diagram { padding: 8px; overflow-x: auto; }
+  .diagram svg { width: 100%; height: auto; min-width: 720px; display: block; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: #f0f2f6; font-size: 13px; text-transform: uppercase; letter-spacing: .03em; color: #444; }
+  code { background: #eef1f6; border-radius: 4px; padding: 1px 5px; font-size: 13px; }
+  .mono-red { color: var(--red); font-weight: 700; }
+  .mono-gnd { color: var(--gnd); font-weight: 700; }
+  .mono-data { color: var(--data); font-weight: 700; }
+  ul { margin: 8px 0 0; padding-left: 20px; }
+  li { margin: 5px 0; }
+  .warn { border-left: 4px solid #e0a800; background: #fffbef; }
+  .warn h2 { color: #8a6100; }
+  .note { border-left: 4px solid var(--ok); background: #f4fbf4; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+  footer { color: var(--muted); font-size: 13px; margin-top: 26px; }
+  .legend { display: flex; gap: 22px; flex-wrap: wrap; font-size: 13.5px; margin-top: 4px; }
+  .legend span::before { content: ""; display: inline-block; width: 22px; height: 3px; margin-right: 6px; vertical-align: middle; }
+  .l-data::before { background: var(--data); }
+  .l-5v::before { background: var(--red); }
+  .l-gnd::before { background: var(--gnd); }
+  .l-opt::before { background: var(--diode); }
+  .opt { color: var(--diode); font-weight: 700; }
+</style>
+</head>
+<body>
+<main>
+  <h1>ESP8266 → ruban WS2812B 5 V <span class="badge">sans 74HCT245</span></h1>
+  <p class="sub">
+    Variante du schéma <strong>sans level shifter</strong> : la data 3,3 V attaque directement
+    le ruban (fil court), avec en <span class="opt">option</span> une diode pour abaisser le ruban
+    à ~4,5 V. Projet <strong>distinct de la tower-lamp</strong>, sans FadeCandy.
+  </p>
+
+  <div class="card diagram">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 640" role="img"
+         aria-label="Schéma de câblage ESP8266 vers ruban WS2812B sans level shifter, avec diode optionnelle">
+      <rect width="1100" height="640" fill="#ffffff"/>
+      <text x="40" y="42" font-size="21" font-weight="700" fill="#111111">
+        ESP8266 → ruban WS2812B 5 V : câblage SANS 74HCT245 (data directe, fil ≤ 10–15 cm)
+      </text>
+
+      <!-- Rails -->
+      <line x1="50" y1="90" x2="1050" y2="90" stroke="#d33333" stroke-width="4"/>
+      <line x1="50" y1="560" x2="1050" y2="560" stroke="#111111" stroke-width="4"/>
+      <text x="50" y="80" font-size="16" font-weight="700" fill="#d33333">+5 V</text>
+      <text x="50" y="585" font-size="16" font-weight="700" fill="#111111">GND</text>
+
+      <!-- Alimentation -->
+      <rect x="60" y="240" width="150" height="120" rx="10" fill="#eef2ff" stroke="#3355aa" stroke-width="2"/>
+      <text x="135" y="297" font-size="18" font-weight="700" text-anchor="middle" fill="#111111">Alim</text>
+      <text x="135" y="322" font-size="16" text-anchor="middle" fill="#111111">5 V / 10 A</text>
+      <text x="168" y="258" font-size="18" font-weight="700" fill="#d33333">+</text>
+      <text x="168" y="350" font-size="18" font-weight="700" fill="#111111">−</text>
+      <line x1="135" y1="240" x2="135" y2="90" stroke="#d33333" stroke-width="3"/>
+      <line x1="135" y1="360" x2="135" y2="560" stroke="#111111" stroke-width="3"/>
+      <circle cx="135" cy="90" r="5" fill="#d33333"/>
+      <circle cx="135" cy="560" r="5" fill="#111111"/>
+
+      <!-- ESP8266 -->
+      <rect x="280" y="200" width="170" height="240" rx="10" fill="#eefbe9" stroke="#338833" stroke-width="2"/>
+      <text x="365" y="285" font-size="18" font-weight="700" text-anchor="middle" fill="#111111">ESP8266</text>
+      <text x="365" y="308" font-size="12" text-anchor="middle" fill="#555555">NodeMCU / Wemos D1 mini</text>
+      <text x="365" y="328" font-size="12" text-anchor="middle" fill="#555555">alim. via VIN (5 V) ou USB</text>
+      <line x1="450" y1="300" x2="540" y2="300" stroke="#2266dd" stroke-width="3"/>
+      <text x="453" y="290" font-size="13" fill="#2266dd">D4 (GPIO2)</text>
+      <line x1="365" y1="200" x2="365" y2="90" stroke="#d33333" stroke-width="3"/>
+      <circle cx="365" cy="90" r="5" fill="#d33333"/>
+      <text x="375" y="165" font-size="12" fill="#d33333">VIN (ou 5 V)</text>
+      <line x1="365" y1="440" x2="365" y2="560" stroke="#111111" stroke-width="3"/>
+      <circle cx="365" cy="560" r="5" fill="#111111"/>
+      <text x="375" y="505" font-size="13" fill="#111111">GND</text>
+
+      <!-- Résistance série -->
+      <rect x="540" y="292" width="60" height="16" rx="3" fill="#ffffff" stroke="#2266dd" stroke-width="2"/>
+      <text x="570" y="282" font-size="14" text-anchor="middle" fill="#2266dd">330 Ω</text>
+      <line x1="600" y1="300" x2="760" y2="300" stroke="#2266dd" stroke-width="3"/>
+      <text x="700" y="290" font-size="13" fill="#2266dd">DIN</text>
+
+      <!-- Ruban -->
+      <rect x="760" y="180" width="180" height="340" rx="10" fill="#fdecec" stroke="#cc3333" stroke-width="2"/>
+      <text x="850" y="222" font-size="17" font-weight="700" text-anchor="middle" fill="#111111">Ruban WS2812B</text>
+      <text x="850" y="244" font-size="13" text-anchor="middle" fill="#555555">60 LED/m · 90 LED</text>
+      <rect x="872" y="270" width="16" height="16" fill="#7ec87e" stroke="#3a7a3a"/>
+      <rect x="872" y="315" width="16" height="16" fill="#7ec87e" stroke="#3a7a3a"/>
+      <rect x="872" y="360" width="16" height="16" fill="#7ec87e" stroke="#3a7a3a"/>
+      <rect x="872" y="405" width="16" height="16" fill="#7ec87e" stroke="#3a7a3a"/>
+      <rect x="872" y="450" width="16" height="16" fill="#7ec87e" stroke="#3a7a3a"/>
+      <text x="910" y="412" font-size="11" fill="#555555">…</text>
+
+      <!-- +5 V vers ruban, avec diode OPTIONNELLE -->
+      <line x1="800" y1="90" x2="800" y2="112" stroke="#d33333" stroke-width="3"/>
+      <polygon points="786,112 814,112 800,134" fill="#8a5a00"/>
+      <line x1="786" y1="134" x2="814" y2="134" stroke="#8a5a00" stroke-width="4"/>
+      <line x1="800" y1="134" x2="800" y2="180" stroke="#d33333" stroke-width="3"/>
+      <circle cx="800" cy="90" r="5" fill="#d33333"/>
+      <text x="820" y="112" font-size="12" font-weight="700" fill="#8a5a00">D (option)</text>
+      <text x="820" y="130" font-size="12" fill="#8a5a00">→ ruban ~4,5 V</text>
+      <text x="820" y="160" font-size="11" fill="#777777">retirer D = ruban à 5 V</text>
+
+      <!-- GND ruban -->
+      <line x1="800" y1="520" x2="800" y2="560" stroke="#111111" stroke-width="3"/>
+      <circle cx="800" cy="560" r="5" fill="#111111"/>
+      <text x="810" y="540" font-size="12" fill="#111111">GND</text>
+
+      <!-- Injection 2e bout -->
+      <line x1="940" y1="230" x2="965" y2="230" stroke="#d33333" stroke-width="3"/>
+      <line x1="965" y1="230" x2="965" y2="90" stroke="#d33333" stroke-width="3"/>
+      <circle cx="965" cy="90" r="5" fill="#d33333"/>
+      <line x1="940" y1="470" x2="965" y2="470" stroke="#111111" stroke-width="3"/>
+      <line x1="965" y1="470" x2="965" y2="560" stroke="#111111" stroke-width="3"/>
+      <circle cx="965" cy="560" r="5" fill="#111111"/>
+      <text x="958" y="200" font-size="12" text-anchor="end" fill="#555555">injection 2ᵉ bout</text>
+
+      <!-- Condensateur 1000 uF -->
+      <line x1="1010" y1="90" x2="1010" y2="305" stroke="#d33333" stroke-width="3"/>
+      <line x1="1010" y1="321" x2="1010" y2="560" stroke="#111111" stroke-width="3"/>
+      <line x1="992" y1="305" x2="1028" y2="305" stroke="#111111" stroke-width="4"/>
+      <line x1="992" y1="321" x2="1028" y2="321" stroke="#111111" stroke-width="4"/>
+      <circle cx="1010" cy="90" r="5" fill="#d33333"/>
+      <circle cx="1010" cy="560" r="5" fill="#111111"/>
+      <text x="1031" y="297" font-size="16" font-weight="700" fill="#d33333">+</text>
+      <text x="1010" y="270" font-size="13" text-anchor="middle" fill="#111111">1000 µF</text>
+
+      <!-- Légende -->
+      <text x="60" y="615" font-size="13" fill="#2266dd">— data (3,3 V)</text>
+      <text x="190" y="615" font-size="13" fill="#d33333">— +5 V</text>
+      <text x="270" y="615" font-size="13" fill="#111111">— GND</text>
+      <text x="350" y="615" font-size="13" fill="#8a5a00">▮ composant optionnel</text>
+      <text x="560" y="615" font-size="13" fill="#555555">Masses communes (ESP8266, alim, ruban) obligatoires.</text>
+    </svg>
+    <div class="legend">
+      <span class="l-data">data (3,3 V direct)</span>
+      <span class="l-5v">+5 V</span>
+      <span class="l-gnd">GND</span>
+      <span class="l-opt">option (diode → ~4,5 V)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Correspondances de câblage</h2>
+    <table>
+      <thead>
+        <tr><th>Depuis</th><th>Vers</th><th>Détail / précaution</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="mono-red">Alim +5 V</td><td>Ruban +5 V, <strong>aux deux extrémités</strong></td><td>Fil 18 AWG entre alim et ruban ; injection 2<sup>e</sup> bout pour éviter la chute de tension.</td></tr>
+        <tr><td class="mono-red">Alim +5 V</td><td>ESP8266 <code>VIN</code> (ou <code>5V</code>)</td><td>Le régulateur de la carte refait le 3,3 V. <strong>Jamais</strong> alimenter le ruban depuis <code>3V3</code>.</td></tr>
+        <tr><td class="mono-gnd">Alim GND</td><td>Ruban GND, ESP8266 GND</td><td><strong>Masse commune obligatoire</strong> entre alim, ESP et ruban.</td></tr>
+        <tr><td class="mono-data">ESP8266 <code>D4</code> (GPIO2)</td><td>330 Ω → ruban <code>DIN</code> <strong>directement</strong></td><td>Pas de shifter : dépend du lot de WS2812B et d'un fil très court (voir avertissements).</td></tr>
+        <tr><td class="opt">Diode (option)</td><td>En série sur le +5 V du ruban</td><td>Anode côté alim, cathode côté ruban → ~4,5 V, ce qui abaisse le seuil logique à ~3,15 V.</td></tr>
+        <tr><td class="mono-red">1000 µF</td><td>+5 V / GND près du ruban</td><td>Absorbe l'appel de courant quand beaucoup de LED commutent.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card warn">
+    <h2>Avertissements (version sans shifter)</h2>
+    <ul>
+      <li><strong>Hors spec</strong> : le WS2812B en 5 V veut un niveau haut ≈ 3,5 V ; l'ESP8266 sort ~3,3 V. Ça marche <em>souvent</em> — sinon ça scintille / la 1<sup>re</sup> LED déraille, et le comportement change avec le lot et la température.</li>
+      <li><strong>Fil data le plus court possible</strong> : viser <strong>≤ 10–15 cm</strong> (idéalement ≤ 5 cm). Au-delà, les réflexions/bruit rendent le signal marginal.</li>
+      <li><strong>Le fil data le plus court possible</strong> et la résistance 330 Ω restent <strong>obligatoires</strong> (anti-ringing), shifter ou pas.</li>
+      <li><strong>Solution fiable sans shifter</strong> : la <span class="opt">diode en série sur le +5 V du ruban</span> → ruban à ~4,5 V, seuil logique ~3,15 V, 3,3 V passe avec marge. Coût : une diode (1N4007 suffit), légère perte de luminosité max.</li>
+      <li><strong>GPIO2 (D4)</strong> doit être HIGH au boot : ne pas tirer la data vers le bas au démarrage (le ruban DIN est en entrée haute impédance, ça va ; éviter tout pull-down fort).</li>
+      <li>Si tu constates des scintillements, mets la diode, raccourcis le fil, ou reviens au <strong>74HCT245</strong> (schéma d'origine).</li>
+    </ul>
+  </div>
+
+  <div class="grid2">
+    <div class="card note">
+      <h2>Alimentation &amp; valeurs (90 LED)</h2>
+      <ul>
+        <li>Courant max (blanc plein, ~60 mA/LED) : <strong>~5,4 A</strong> — puissance max <strong>~27 W</strong></li>
+        <li>Alim conseillée : <strong>5 V / 10 A</strong> (un chargeur USB 5 V/2–3 A ne suffit que pour des effets partiels, avec limiteur de courant)</li>
+        <li>Condensateur : <strong>1000 µF</strong> aux bornes du ruban</li>
+        <li>Résistance data : <strong>330 Ω</strong> en série sur DIN</li>
+        <li>Injection : <strong>aux deux bouts</strong></li>
+      </ul>
+    </div>
+    <div class="card note">
+      <h2>Refresh &amp; logiciel</h2>
+      <ul>
+        <li>Plafond = temps de transmission : <code>fps ≈ 1 / (N × ~30 µs)</code>, soit <strong>~370 fps</strong> pour 90 LED ; viser 60–120 fps.</li>
+        <li><strong>Pas de RMT</strong> sur ESP8266 : préférer une méthode peu intrusive (NeoPixelBus UART/DMA) plutôt que le bit-bang, qui gêne le WiFi.</li>
+        <li>Stack : <strong>Arduino / PlatformIO + NeoPixelBus</strong> ou FastLED ; <strong>WLED</strong> prêt à l'emploi (WiFi + effets + OTA).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Liste du matériel (sans shifter)</h2>
+    <table>
+      <thead><tr><th>Rôle</th><th>Composant</th></tr></thead>
+      <tbody>
+        <tr><td>Contrôleur</td><td>ESP8266 (NodeMCU v3 / Wemos D1 mini)</td></tr>
+        <tr><td>Ruban</td><td>WS2812B 5 V, 60 LED/m, ~1,5 m (~90 LED)</td></tr>
+        <tr><td>Alimentation</td><td>5 V / 10 A (≥ 6 A)</td></tr>
+        <tr><td>Résistance data</td><td>330 Ω (300–500 Ω)</td></tr>
+        <tr><td>Condensateur</td><td>1000 µF / ≥ 6,3 V</td></tr>
+        <tr><td class="opt">Option fiabilité</td><td>Diode 1N4007 (≈ −0,7 V → ruban ~4,5 V)</td></tr>
+        <tr><td>Câblage puissance</td><td>Fil 18 AWG (alim → ruban), masses communes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    Version avec level shifter : <code>doc/esp8266-ruban-unique.html</code> ·
+    base ESP32 : <code>doc/esp32-ruban-unique-notes.md</code>. Projet distinct de la tower-lamp.
+  </footer>
+</main>
+</body>
+</html>
